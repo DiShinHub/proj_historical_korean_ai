@@ -9,7 +9,7 @@
 다음 소프트웨어가 설치되어 있어야 합니다.
 
 - 🐳 Docker
-- 🧑‍💻 Git
+- 🧑 Git
 - 🐍 Python 3.11.7
 
 ---
@@ -28,7 +28,7 @@
 프로젝트 실행 전 Docker 네트워크를 생성합니다.
 docker network create hk-ai-network
 
-## 환경변수
+## 🛠️ 환경변수
 환경 설정 관련 문의는 담당자에게 요청 바랍니다.
 
 ## Windows 빌드/실행/중지 방법
