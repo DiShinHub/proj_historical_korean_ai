@@ -1,5 +1,4 @@
 volumes
-.env
 todo.ini
 __pycache__
 *.pyc
@@ -30,13 +29,9 @@ __pycache__/
 *.pyd
 *.pyc
 
-.env
-.env.*
-!.env.example
 
 .venv/
 venv/
-ENV/
 
 # pytest / coverage
 .pytest_cache/
@@ -68,7 +63,10 @@ dist/
 out/
 
 # env
+
 .env
+.env.fastapi
+.env.fastapi.local
 .env.local
 .env.development
 .env.test
