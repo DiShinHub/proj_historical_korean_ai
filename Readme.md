@@ -12,7 +12,24 @@
 - DBeaver
 - Postman
 
-# 깃 설치
-
 # 도커 네트워크 추가
 docker network create hk-ai-network
+
+# 환경변수
+담당자 요청 셋업
+
+# 빌드 (윈도우)
+cd _boot\bat
+./build.bat
+
+# 실행 (윈도우)
+cd _boot\bat
+./start.bat
+
+# 정지 (윈도우)
+cd _boot\bat
+./stop.
+
+# minio 셋업
+{작성 필요}
+
