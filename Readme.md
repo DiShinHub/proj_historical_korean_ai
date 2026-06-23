@@ -32,13 +32,29 @@ docker network create hk-ai-network
 환경 설정 관련 문의는 담당자에게 요청 바랍니다.
 
 ## Windows 빌드 방법
+<pre>
 cd _boot\bat
 build.bat
+</pre>
 
 ## Windows 실행 방법
+<pre>
 cd _boot\bat
 start.bat
+</pre>
 
 ## Windows 중지 방법
+<pre>
 cd _boot\bat
 stop.bat
+</pre>
+
+# postgres 셋업
+<pre>
+작성 중
+</pre>
+
+# minio 셋업
+<pre>
+작성 중
+</pre>
