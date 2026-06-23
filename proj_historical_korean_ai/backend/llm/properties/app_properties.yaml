@@ -1,0 +1,32 @@
+common:
+  debug: false
+  app:
+    name: cv-llm-bridge-app
+    description: "Fastapi Sync/Async Boilerplate Project"
+    version: 0.1.0
+  cors:
+    allow:
+      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+  metrics:
+    prometheus:
+      use: true
+  scheduler:
+    use: false
+    autostart: true
+
+# development
+dev:
+  debug: true
+  cors:
+    allow:
+      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+
+# staging
+stg:
+  debug: true
+  cors:
+    allow:
+      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+
+# production
+prd:

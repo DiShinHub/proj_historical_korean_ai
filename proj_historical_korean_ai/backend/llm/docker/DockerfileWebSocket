@@ -1,0 +1,25 @@
+FROM python:3.11.7
+
+SHELL ["/bin/bash", "-c"]
+
+ENV APP_ACTIVE_ENV=${FASTAPI_APP_ACTIVE_ENV}
+ENV APP_PORT=8000
+ENV APP_LOG_LOCATION=logs
+
+ENV TZ=Asia/Seoul
+ENV APP_PATH=/apps
+
+EXPOSE ${APP_PORT}
+
+COPY . ${APP_PATH}
+WORKDIR ${APP_PATH}
+
+
+ENV PYTHONPATH=${APP_PATH}:${APP_PATH}/app
+
+RUN pip install poetry
+ENV POETRY_HOME /usr/local
+
+RUN poetry install
+RUN chmod +x /apps/web_socket/main.sh
+CMD /bin/bash -c "/apps/web_socket/main.sh"

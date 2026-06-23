@@ -1,0 +1,21 @@
+services:
+
+  fastapi-app-postgres:
+    container_name: ${FASTAPI_APP_NAME}-postgres-compose
+    image: postgres:14.6-alpine
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - ./volumes/data/db-postgres:/var/lib/postgresql/data
+    command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${POSTGRES_TIMEZONE}
+    restart: unless-stopped
+    networks:
+      - hk-ai-network
+
+networks:
+  hk-ai-network:
+    external: true

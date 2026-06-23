@@ -1,0 +1,22 @@
+local:
+  loggers:
+    root:
+      level: DEBUG
+    uvicorn:
+      level: DEBUG
+    sqlalchemy:
+      level: DEBUG
+    sqlalchemy.engine:
+      level: DEBUG
+    sqlalchemy.engine.Engine:
+      level: DEBUG
+    sqlalchemy.orm:
+      level: DEBUG
+    sqlalchemy.pool:
+      level: DEBUG
+    sqlalchemy.dialects:
+      level: DEBUG
+    app:
+      level: DEBUG
+    apscheduler:
+      level: DEBUG

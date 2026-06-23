@@ -1,0 +1,98 @@
+volumes
+.env
+todo.ini
+__pycache__
+*.pyc
+
+venv/
+.ipynb_checkpoints
+
+backup/
+program/
+*.sql
+*.png
+logs
+
+# =========================
+# OS / IDE
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+.env
+.env.*
+!.env.example
+
+.venv/
+venv/
+ENV/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# Django (사용 시)
+db.sqlite3
+*.log
+
+# FastAPI / general logs
+*.log
+
+# =========================
+# Node / React
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# build output
+build/
+dist/
+out/
+
+# env
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# React / Next.js
+.next/
+.cache/
+.vercel/
+
+# =========================
+# Docker (선택)
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
+*.bak
+*.tmp
+
+.zip
+
+_toy/
+__design/

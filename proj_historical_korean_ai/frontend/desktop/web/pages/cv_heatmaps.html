@@ -1,0 +1,102 @@
+
+<div class="content_box">
+    <div class="content_box">
+        <div>
+            <button id="btnRefreshCvHeatmaps" class="refresh_btn">
+                새로고침
+            </button>
+            <button id="btnAddHeatmap" class="add_btn">
+                히트맵 추가
+            </button>
+            <button id="btnDelHeatmap" class="del_btn">
+                히트맵 삭제
+            </button>
+            <button
+                type="button"
+                id="btnUpdateHeatmapUrl"
+                class="add_btn"
+            >
+                URL 업데이트
+            </button>
+            <button
+                type="button"
+                id="btnToggleHeatmapUrl"
+                class="toggle_btn"
+            >
+                URL 입력 숨기기
+            </button>
+            <!-- 이전 -->
+            <button
+                type="button"
+                class="slider-btn left"
+                id="btnHeatmapPrev"
+            >
+                ◀
+            </button>
+
+            <!-- 슬라이딩 -->
+            <button
+                type="button"
+                class="slider-btn"
+                id="btnHeatmapSlider"
+            >
+            0
+            </button>
+
+            <!-- 다음 -->
+            <button
+                type="button"
+                class="slider-btn right"
+                id="btnHeatmapNext"
+            >
+                ▶
+            </button>
+
+            <!-- 페이지 표시 -->
+            <span id="heatmapCurrentIdx">0</span>
+            /
+            <span id="heatmapMaxIdx">0</span>
+        </div>
+
+        <!-- 히트맵 영역 -->
+        <div id="heatmapContainer" class="heatmapContainer"></div>
+        </div>
+</div>
+
+<!-- 히트맵 추가 팝업 -->
+<div id="heatmapAddModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>히트맵 추가</h3>
+            <button class="modal-close" id="btnCloseHeatmapModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-field">
+                <label>타이틀</label>
+                <input type="text" id="heatmapTitle" placeholder="히트맵 이름" />
+            </div>
+
+            <div class="modal-field">
+                <label>디스크립션</label>
+                <textarea id="heatmapDesc" placeholder="설명"></textarea>
+            </div>
+
+            <div class="modal-field">
+                <label>분할 방식</label>
+                <select id="heatmapSplit">
+                    <option value="1">1</option>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button id="btnSaveHeatmap" class="submit_btn">
+                💾 저장
+            </button>
+        </div>
+    </div>
+</div>

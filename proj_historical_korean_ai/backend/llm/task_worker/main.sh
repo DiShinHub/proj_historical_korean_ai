@@ -1,0 +1,1 @@
+poetry run python /apps/task_worker/main.py 

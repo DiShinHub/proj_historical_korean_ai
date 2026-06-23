@@ -1,0 +1,15 @@
+services:
+
+  fastapi-app-redis:
+    container_name: ${FASTAPI_APP_NAME}-redis-compose
+    image: redis:5.0.7
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: ["redis-server"]
+    restart: unless-stopped
+    networks:
+      - hk-ai-network
+
+networks:
+  hk-ai-network:
+    external: true

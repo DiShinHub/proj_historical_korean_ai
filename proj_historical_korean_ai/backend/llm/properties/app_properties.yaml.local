@@ -1,0 +1,11 @@
+local:
+  debug: true
+  cors:
+    allow:
+      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+  metrics:
+    prometheus:
+      use: true
+  scheduler:
+    use: false
+    autostart: true

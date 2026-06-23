@@ -1,0 +1,6 @@
+local:
+  redis:
+    #host: localhost
+    host: hk-ai-redis-compose
+    port: 6379
+    db: 1

@@ -1,0 +1,30 @@
+common:
+  redis:
+    #host: localhost
+    host: hk-ai-redis-compose
+    port: 43502
+    db: 0
+
+# development
+dev:
+  redis:
+    #host: localhost
+    host: hk-ai-redis-compose
+    port: 43502
+    db: 0
+
+# staging
+stg:
+  redis:
+    #host: localhost
+    host: hk-ai-redis-compose
+    port: 43502
+    db: 0
+
+# production
+prd:
+  redis:
+    #host: localhost
+    host: hk-ai-redis-compose
+    port: 43502
+    db: 0

@@ -1,0 +1,29 @@
+services:
+
+  fastapi-app-minio:
+    container_name: ${FASTAPI_APP_NAME}-minio-compose
+    image: minio/minio:latest
+    ports:
+      - "${MINIO_SERVICE_PORT}:${MINIO_SERVICE_PORT}"
+      - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}"
+    volumes:
+      - ./volumes/data/object-storage-minio:/data
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    environment:
+      - MINIO_INTERNAL_URL=${MINIO_INTERNAL_URL}
+      - MINIO_EXTERNAL_URL=${MINIO_EXTERNAL_URL}
+      - MINIO_PRESIGN_URL_EXPIRE=${MINIO_PRESIGN_URL_EXPIRE}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_LOCAL=${MINIO_LOCAL}
+    shm_size: '1gb'
+    restart: unless-stopped
+    networks:
+      - hk-ai-network
+
+networks:
+  hk-ai-network:
+    external: true

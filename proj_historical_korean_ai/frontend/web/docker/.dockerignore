@@ -1,0 +1,10 @@
+frontend-boilerplate/
+├── Dockerfile
+├── .dockerignore
+├── docker-compose.yml
+├── package.json
+├── package-lock.json
+├── next.config.js
+├── public/
+├── src/
+└── ...

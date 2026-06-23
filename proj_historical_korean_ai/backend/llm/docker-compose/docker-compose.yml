@@ -1,0 +1,63 @@
+services:
+
+  fastapi-app:
+    container_name: ${FASTAPI_APP_NAME}-compose
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "${FASTAPI_APP_PORT}:${FASTAPI_APP_PORT}"
+    volumes:
+      - ../app:/apps/app
+      - ../poetry.lock:/apps/poetry.lock
+      - ../pyproject.toml:/apps/pyproject.toml
+      - ./volumes/logs/${FASTAPI_APP_NAME}:/apps/logs/${FASTAPI_APP_NAME}
+    environment:
+      - TZ=${FASTAPI_TIMEZONE}
+      - APP_PORT=${FASTAPI_APP_PORT}
+      - APP_ACTIVE_ENV=${FASTAPI_APP_ACTIVE_ENV}
+      - APP_LOG_LOCATION=/apps/logs/${FASTAPI_APP_NAME}
+    networks:
+      - hk-ai-network
+
+  fastapi-task-worker:
+    container_name: ${FASTAPI_APP_NAME}-task-worker-compose
+    build:
+      context: ../
+      dockerfile: ./docker/DockerfileTaskWorker
+    ports:
+      - "${FASTAPI_TASK_WORKER_PORT}:${FASTAPI_TASK_WORKER_PORT}"
+    volumes:
+      - ./volumes/logs/${FASTAPI_TASK_WORKER_NAME}:/apps/logs/${FASTAPI_TASK_WORKER_NAME}
+      - ../task_worker:/apps/task_worker
+      - ../poetry.lock:/apps/poetry.lock
+      - ../pyproject.toml:/apps/pyproject.toml
+    environment:
+      - TZ=${FASTAPI_TIMEZONE}
+      - APP_PORT=${FASTAPI_TASK_WORKER_PORT}
+      - APP_LOG_LOCATION=/apps/logs/${FASTAPI_TASK_WORKER_NAME}
+    networks:
+      - hk-ai-network
+    
+  fastapi-websocket:
+    container_name: ${FASTAPI_APP_NAME}-websocket-compose
+    build:
+      context: ../
+      dockerfile: ./docker/DockerfileWebSocket
+    ports:
+      - "${FASTAPI_WEB_SOCKET_PORT}:${FASTAPI_WEB_SOCKET_PORT}"
+    volumes:
+      - ./volumes/logs/${FASTAPI_WEB_SOCKET_NAME}:/apps/logs/${FASTAPI_WEB_SOCKET_NAME}
+      - ../web_socket:/apps/web_socket
+      - ../poetry.lock:/apps/poetry.lock
+      - ../pyproject.toml:/apps/pyproject.toml
+    environment:
+      - TZ=${FASTAPI_TIMEZONE}
+      - APP_PORT=${FASTAPI_WEB_SOCKET_PORT}
+      - APP_LOG_LOCATION=/apps/logs/${FASTAPI_WEB_SOCKET_NAME}
+    networks:
+      - hk-ai-network
+
+networks:
+  hk-ai-network:
+    external: true
