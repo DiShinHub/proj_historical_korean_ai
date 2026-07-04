@@ -15,24 +15,24 @@ const Header: React.FC = () => {
         <Typography
           variant="h6"
           sx={{ cursor: 'pointer', flexGrow: 1 }}
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/chat')}
         >
           Historical Korean AI
         </Typography>
 
-        <Button
+        {/* <Button
           color="inherit"
           onClick={() => router.push('/chat')}
         >
           Chat
-        </Button>
+        </Button> */}
 
-        <IconButton
+        {/* <IconButton
           color="inherit"
           onClick={toggleTheme}
         >
           <Brightness4Icon />
-        </IconButton>
+        </IconButton> */}
 
       </Toolbar>
     </AppBar>

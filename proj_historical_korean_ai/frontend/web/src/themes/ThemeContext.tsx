@@ -1,61 +1,52 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { CustomTheme as Theme, lightTheme, darkTheme, createMuiTheme } from '.'; // Import your Theme type
-import { createGlobalStyle } from 'styled-components';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles'; // Import MUI's ThemeProvider
-import CssBaseline from '@mui/material/CssBaseline'; // Import MUI's CssBaseline
+import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { CustomTheme as Theme, lightTheme, darkTheme } from ".";
 
-const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
-  body {
-    background-color: ${(props) => props.theme.backgroundColor};
-    color: ${(props) => props.theme.fontColor};
-  }
-`;
-
-// Create the ThemeContext with initial values
+// Context
 export const ThemeContext = createContext<{
   theme: Theme;
   toggleTheme: () => void;
 }>({
-  theme: lightTheme, // Default to light theme
+  theme: lightTheme,
   toggleTheme: () => {},
 });
 
-// Define a custom hook to access the theme and toggleTheme function
+// Hook
 export const useTheme = () => useContext(ThemeContext);
 
-// Provide a higher-order component to wrap your components with the ThemeContext
 export const AppThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(lightTheme);
+  const [mode, setMode] = useState<"light" | "dark">("light");
 
+  // 초기 로드
   useEffect(() => {
-    // Load the theme from localStorage or use the default theme
-    
-    const storedTheme = localStorage.getItem('theme');
-    //console.log(storedTheme);
-    if (storedTheme) {
-      setTheme(storedTheme === 'dark' ? darkTheme : lightTheme);
-    }
+    const stored = localStorage.getItem("theme") as "light" | "dark" | null;
+
+    const initial = stored ?? "light";
+    setMode(initial);
+    setTheme(initial === "dark" ? darkTheme : lightTheme);
   }, []);
 
-  // Function to toggle the theme
-  const handleToggleTheme = () => {
-    setTheme((currentTheme) => {
-      const newTheme = currentTheme === lightTheme ? darkTheme : lightTheme; // Toggle between light and dark themes
-      const themeSelected = currentTheme === lightTheme ? 'dark' : 'light';
-      localStorage.setItem('theme', themeSelected);
-      return newTheme;
+  // body class sync
+  useEffect(() => {
+    document.body.classList.remove("light", "dark");
+    document.body.classList.add(mode);
+  }, [mode]);
+
+  // toggle
+  const toggleTheme = () => {
+    setMode((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+
+      setTheme(next === "dark" ? darkTheme : lightTheme);
+      localStorage.setItem("theme", next);
+
+      return next;
     });
   };
 
-  const muiTheme = createMuiTheme(theme);
-
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme: handleToggleTheme }}>
-      <MuiThemeProvider theme={muiTheme}>
-        <CssBaseline />
-        <GlobalStyle theme={theme} />
-        {children}
-      </MuiThemeProvider>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
     </ThemeContext.Provider>
   );
 };

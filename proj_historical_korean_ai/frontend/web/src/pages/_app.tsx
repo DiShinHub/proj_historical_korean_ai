@@ -8,6 +8,8 @@ import { lazy, Suspense } from 'react';
 import { Base } from '@/templates/base';
 import store, { persistor } from '../redux/store';
 
+import "@/styles/globals.css";
+
 // Import your i18n configuration
 import i18n from '../i18n';
 
