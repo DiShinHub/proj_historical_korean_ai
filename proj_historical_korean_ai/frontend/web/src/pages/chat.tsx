@@ -1,11 +1,20 @@
-import Sidebar from "@/layout/Sidebar";
-import ChatArea from "@/layout/ChatArea";
+import type { ReactElement } from "react";
+import Head from "next/head";
+import ChatApp from "@/components/chat/ChatApp";
+import type { NextPageWithLayout } from "./_app";
 
-export default function ChatPage() {
+const ChatPage: NextPageWithLayout = () => {
   return (
-    <div className="app">
-      <Sidebar />
-      <ChatArea />
-    </div>
+    <>
+      <Head>
+        <title>고대 한국어 번역 LLM</title>
+      </Head>
+      <ChatApp />
+    </>
   );
-}
+};
+
+// Full-bleed: skip the global Header/Footer shell.
+ChatPage.getLayout = (page: ReactElement) => page;
+
+export default ChatPage;

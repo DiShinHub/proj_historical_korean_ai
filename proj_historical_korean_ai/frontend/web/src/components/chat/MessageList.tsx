@@ -1,49 +1,92 @@
-// src/components/chat/MessageList.tsx
+import { useEffect, useRef } from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import {
+  ChatMessage,
+  removeMessage,
+  sendMessage,
+} from "@/redux/slices/messagesSlice";
+import MessageItem from "./MessageItem";
+import EmptyState from "./EmptyState";
 
 export default function MessageList() {
+  const dispatch = useAppDispatch();
+  const activeSeq = useAppSelector((s) => s.sessions.activeSeq);
+  const messages = useAppSelector((s) =>
+    activeSeq != null ? s.messages.bySession[activeSeq] ?? [] : []
+  );
+  const status = useAppSelector((s) =>
+    activeSeq != null ? s.messages.statusBySession[activeSeq] : undefined
+  );
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const lastContent =
+    messages.length > 0 ? messages[messages.length - 1].content : "";
+
+  // Auto-scroll on new/streaming content.
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length, lastContent]);
+
+  if (activeSeq == null) {
+    return (
+      <div className="messages">
+        <EmptyState
+          title="대화를 시작해 보세요"
+          description="왼쪽에서 새 대화를 만들거나 기존 대화를 선택하세요."
+        />
+      </div>
+    );
+  }
+
+  const handleRetry = (message: ChatMessage) => {
+    if (activeSeq == null) return;
+    const idx = messages.findIndex((m) => m.id === message.id);
+    // Resolve the user content + the paired assistant to clear.
+    let userMsg = message;
+    let assistantMsg: ChatMessage | undefined;
+    if (message.role === "USER") {
+      assistantMsg = messages[idx + 1];
+    } else {
+      userMsg = messages[idx - 1] ?? message;
+      assistantMsg = message;
+    }
+    if (userMsg) dispatch(removeMessage({ sessionSeq: activeSeq, id: userMsg.id }));
+    if (assistantMsg)
+      dispatch(removeMessage({ sessionSeq: activeSeq, id: assistantMsg.id }));
+    dispatch(
+      sendMessage({
+        sessionSeq: activeSeq,
+        content: userMsg.content,
+        attachmentName: userMsg.attachmentName,
+      })
+    );
+  };
+
+  if (status === "loading" && messages.length === 0) {
+    return (
+      <div className="messages">
+        <div className="loading-note">불러오는 중…</div>
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="messages">
+        <EmptyState
+          title="무엇을 번역해 드릴까요?"
+          description="현대 한국어 문장을 입력하면 중세 국어 표기로 변환합니다."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="messages">
-      {/* USER MESSAGE */}
-      <div className="message user">
-        <div className="bubble">
-          안녕하세요를 14세기 중세 국어로 변환해줘.
-        </div>
-      </div>
-
-      {/* ASSISTANT MESSAGE */}
-      <div className="message assistant">
-        
-        {/* TRANSLATION CARD */}
-        <div className="response-card translation">
-          <div className="card-title">번역 결과</div>
-
-          <div className="card-content">
-            平安ᄒᆞ신잇가?
-          </div>
-
-          <div className="card-actions">
-            <button type="button">복사</button>
-            <button type="button">재생</button>
-          </div>
-        </div>
-
-        {/* AUDIO CARD */}
-        <div className="response-card">
-          <div className="card-title">음성 생성 결과</div>
-
-          <div className="audio-player">
-            <button type="button" className="play-btn">
-              ▶
-            </button>
-
-            <div className="progress-bar">
-              <div className="progress" />
-            </div>
-
-            <span>00:15</span>
-          </div>
-        </div>
-      </div>
+      {messages.map((m) => (
+        <MessageItem key={m.id} message={m} onRetry={handleRetry} />
+      ))}
+      <div ref={bottomRef} />
     </div>
   );
 }

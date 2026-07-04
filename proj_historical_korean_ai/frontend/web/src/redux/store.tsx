@@ -1,13 +1,25 @@
 // src/redux/store.ts
-import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from './rootReducer'; // Import your root reducer
-import thunk from 'redux-thunk';
-import { persistStore } from 'redux-persist';
+import { configureStore } from "@reduxjs/toolkit";
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+  persistStore,
+} from "redux-persist";
+import rootReducer from "./rootReducer";
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: [thunk],
-  // Add middleware or other configurations as needed
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // redux-persist dispatches actions carrying non-serializable payloads.
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

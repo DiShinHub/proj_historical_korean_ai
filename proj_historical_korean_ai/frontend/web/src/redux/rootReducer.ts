@@ -1,20 +1,26 @@
 // src/redux/rootReducer.ts
-import {persistReducer} from 'redux-persist';
+import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { combineReducers } from '@reduxjs/toolkit';
-import postReducer from './posts/reducer'; /// Import your postReducer
-// Import other reducers as needed
+import { combineReducers } from "@reduxjs/toolkit";
+import postReducer from "./posts/reducer";
+import authReducer from "./slices/authSlice";
+import sessionsReducer from "./slices/sessionsSlice";
+import messagesReducer from "./slices/messagesSlice";
+import socketReducer from "./slices/socketSlice";
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage,
-  whitelist: []
+  // Chat state is always refetched from the backend; nothing is persisted.
+  whitelist: [],
 };
 
 const rootReducer = combineReducers({
-  // Add your individual reducers here
-  posts: postReducer, // Assuming you have a 'posts' slice in your state
-  // Add more reducers for other parts of your app here
+  posts: postReducer,
+  auth: authReducer,
+  sessions: sessionsReducer,
+  messages: messagesReducer,
+  socket: socketReducer,
 });
 
-export default persistReducer(persistConfig, rootReducer)
+export default persistReducer(persistConfig, rootReducer);
