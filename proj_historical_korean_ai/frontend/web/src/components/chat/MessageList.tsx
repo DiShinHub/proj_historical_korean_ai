@@ -75,7 +75,7 @@ export default function MessageList() {
       <div className="messages">
         <EmptyState
           title="무엇을 번역해 드릴까요?"
-          description="현대 한국어 문장을 입력하면 중세 국어 표기로 변환합니다."
+          description="현대 한국어 문장과 중세 국어를 번역합니다."
         />
       </div>
     );
