@@ -57,6 +57,25 @@ services:
       - APP_LOG_LOCATION=/apps/logs/${FASTAPI_WEB_SOCKET_NAME}
     networks:
       - hk-ai-network
+    
+  fastapi-websocket-bridge:
+    container_name: ${FASTAPI_APP_NAME}-websocket-bridge-compose
+    build:
+      context: ../
+      dockerfile: ./docker/DockerfileWebSocket
+    ports:
+      - "${FASTAPI_WEB_SOCKET_PORT}:${FASTAPI_WEB_SOCKET_PORT}"
+    volumes:
+      - ./volumes/logs/${FASTAPI_WEB_SOCKET_NAME}:/apps/logs/${FASTAPI_WEB_SOCKET_NAME}
+      - ../web_socket:/apps/web_socket
+      - ../poetry.lock:/apps/poetry.lock
+      - ../pyproject.toml:/apps/pyproject.toml
+    environment:
+      - TZ=${FASTAPI_TIMEZONE}
+      - APP_PORT=${FASTAPI_WEB_SOCKET_PORT}
+      - APP_LOG_LOCATION=/apps/logs/${FASTAPI_WEB_SOCKET_NAME}
+    networks:
+      - hk-ai-network
 
 networks:
   hk-ai-network:

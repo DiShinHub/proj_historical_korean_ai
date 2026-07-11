@@ -31,6 +31,8 @@ from app.middleware.exception_middleware import ExceptionMiddleware
 from app.middleware.request_id_middleware import RequestIdMiddleware
 from app.model.vo.result_vo import ResultVo, ResultExceptionVo
 from app.provider.exception_handler_provider import default_exception_handler
+
+from app.handler.web_socket.web_socket_router import router as websocket_router
 from app.tool.log_tool import LogTool
 
 
@@ -61,10 +63,13 @@ class AppConfigRunner(metaclass=SingletonMeta):
         self.config_app_middleware(app=fastapi_app)
         self.config_exception_middleware(app=fastapi_app)
         self.config_app_cors(app=fastapi_app)
-        self.config_app_router(app=fastapi_app)
+        self.config_app_api_router(app=fastapi_app)
         self.config_app_exception_handler(app=fastapi_app)
         self.config_app_prometheus(app=fastapi_app)
         self.config_app_event_handler(app=fastapi_app)
+
+        # 
+        self.config_app_web_socket_router(app=fastapi_app)
         
         # Inject To Repository
         self.inject_to_repository(app=fastapi_app)
@@ -125,8 +130,11 @@ class AppConfigRunner(metaclass=SingletonMeta):
         app.add_middleware(AuthenticationMiddleware)
         app.add_middleware(RequestIdMiddleware)
 
-    def config_app_router(self, app: AppType):
+    def config_app_api_router(self, app: AppType):
         app.include_router(router)
+
+    def config_app_web_socket_router(self, app: AppType):
+        app.include_router(websocket_router)
 
     def config_app_exception_handler(self, app: AppType):
         default_exception_list = [

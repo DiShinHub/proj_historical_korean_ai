@@ -16,7 +16,7 @@ const initialState: AuthState = {
   error: null,
 };
 
-/** Log in with hardcoded credentials and load the current user. */
+/** 하드코딩 된 인증정보로 로그인. */
 export const initAuth = createAsyncThunk("auth/init", async () => {
   await login();
   const me = await fetchMe().catch(() => null);
