@@ -3,7 +3,7 @@ from task_worker.tool.log_tool import LogTool
 from task_worker.graph.builds.base.graph_builder import BaseBuilder
 from task_worker.graph.builds.intent_matching.graph_builder import IntentMatchingBuilder
 
-from task_worker.module.socket_client_module import SocketClientModule
+from task_worker.module.websocket_module import web_socket_module
 
 from task_worker.graph.builds.base.rules import BaseRules
 from task_worker.exception.llm_exception import LlmException
@@ -20,7 +20,7 @@ class PromptsService():
         self.im_graph = IntentMatchingBuilder().build_graph()
         
         worker_id = str(uuid.uuid4())[0:10]
-        self.socket_client_module = SocketClientModule(username=f"llm_task_worker_{worker_id}")
+        self.web_socket_module = web_socket_module
         
     def handle_prompts(self, task):
         """
@@ -33,26 +33,26 @@ class PromptsService():
         
         params = task.get("params")
         room_name = params.get("room_name")
-        prompt = params.get("prompt")
+        content = params.get("content")
         
         # 
         response = {
-            "result": "",
-            "llm_msg": "",
+            "result": "test",
+            "llm_msg": "test",
         }
         
         #
-        self.__logger.info("here1")
-        self.socket_client_module.connect()
-        self.__logger.info("here2")
+        data = {
+            "command": "emit_room_connectionless", 
+            "room_name": room_name, 
+            "llm_response": response
+        }
 
-        request = {"command": "emit_to_room_connectionless", "room_name": room_name, "llm_response": params}
-        self.__logger.info(f"request1 : {request}")
-        self.socket_client_module.send_data(json.dumps(request).encode())
-        self.__logger.info(f"request2 : {request}")
+        self.web_socket_module.send(
+            room_name=room_name,
+            data=data
+        )
         
-        time.sleep(0.01)
-        self.socket_client_module.disconnect()
         #
         # TODO 테스크 완료/실패 처리 
         task["task_status"] = "success"

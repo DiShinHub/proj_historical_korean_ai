@@ -2,10 +2,10 @@ import os
 from pathlib import Path
 from typing import Any
 
-from web_socket.base.singleton_meta import SingletonMeta
-from web_socket.enums.app_enum import AppEnum
-from web_socket.tool.log_tool import LogTool
-from web_socket.tool.properties_tool import PropertiesTool
+from task_worker.base.singleton_meta import SingletonMeta
+from task_worker.enums.app_enum import AppEnum
+from task_worker.tool.log_tool import LogTool
+from task_worker.tool.properties_tool import PropertiesTool
 
 
 class WebSocketConfigRunner(metaclass=SingletonMeta):

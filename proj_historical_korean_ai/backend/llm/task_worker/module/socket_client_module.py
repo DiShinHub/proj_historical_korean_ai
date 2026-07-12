@@ -1,7 +1,12 @@
 from task_worker.tool.log_tool import LogTool
 from task_worker.config.web_socket_config.web_socket_config_runner import WebSocketConfigRunner
 
-import socket
+import asyncio
+import json
+import websockets
+
+
+import websockets
 import threading
 import json
 
@@ -14,11 +19,16 @@ class SocketClientModule():
         properties_dict: dict = WebSocketConfigRunner().get_properties()
         self.host = properties_dict.get("host")
         self.port = int(properties_dict.get("port"))
+        self.url = f"ws://{self.host}:/websocket/ws"
         self.client_socket = None
 
         self.username = username
 
-    def connect(self):
+    async def connect(self):
+
+        async with websockets.connect(URL) as ws:
+
+            print("Connected")
 
         # 소켓 생성
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

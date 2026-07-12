@@ -15,6 +15,8 @@ from app.exception.internal_server_exception import InternalServerException
 
 from app.decoration.transactional import Transactional
 
+from app.config.redis_config.redis_config_repository import redis_config_repository
+
 from app.tool.log_tool import LogTool
 
 from fastapi import Body, Depends
@@ -22,14 +24,19 @@ from fastapi import Body, Depends
 import datetime
 import math
 from typing import Dict, Any
+import uuid
+import json
 
 
 class ChatService:
 
     __logger = LogTool.get_logger(__qualname__)
 
+
     def __init__(self):
         self.__chat_dao = ChatDao(get_scoped_session=get_scoped_session)
+        self.get_redis_connection = redis_config_repository.get_redis_connection
+        self.check_overlab_task = redis_config_repository.check_overlab_task
 
     @Transactional()
     async def post_chat_session(
@@ -181,6 +188,27 @@ class ChatService:
 
         except Exception as e:
             raise InternalServerException("메시지 생성 실패")
+
+        # task_worker에게 데이터 전송
+        service_cd = "LBS_001"
+        task_id = str(uuid.uuid4())
+        task = {
+            "task_id": task_id,
+            "task_status": "wait",
+            "retry_cnt" : 0,
+            "params": {
+                "content" : content,
+                "room_name" : str(chat_session_seq)
+            },
+        }
+        task = json.dumps(task)
+        
+        try : 
+            self.get_redis_connection().lpush(service_cd, task)
+
+        except Exception as e :
+            self.__logger.error(f"ChatService.post_chat_message error, service_cd : {service_cd}, task : {task}, error : {str(e)}")
+            raise InternalServerException("관리자에게 문의하세요.")
 
         return ResultVo(
             success=True,

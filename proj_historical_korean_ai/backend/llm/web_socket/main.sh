@@ -1,1 +1,0 @@
-poetry run python /apps/web_socket/main.py 

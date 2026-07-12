@@ -1,18 +1,17 @@
 common:
   websocket: 
-    #host: localhost
-    host: hk-ai-websocket-compose
-    port: 28003
+    host: hk-ai-compose
+    port: 28001
 
 # development
 dev:
   websocket: 
-    #host: localhost
-    host: hk-ai-websocket-compose
-    port: 28003
+    host: hk-ai-compose
+    port: 28001
 
 # staging
 stg:
 
 # production
 prd:
+

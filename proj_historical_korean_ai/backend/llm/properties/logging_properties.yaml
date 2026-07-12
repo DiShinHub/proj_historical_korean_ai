@@ -61,10 +61,10 @@ common:
       level: INFO
       propagate: false
       handlers: [ file_handler, app_handler ]
-    #  uvicorn.error:
-    #    level: INFO
-    #    propagate: false
-    #    handlers: [ file_handler, access_handler ]
+    uvicorn.error:
+       level: INFO
+       propagate: false
+       handlers: [ file_handler, access_handler ]
     sqlalchemy:
       level: WARNING
       propagate: false

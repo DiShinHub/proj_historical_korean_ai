@@ -15,6 +15,9 @@ import "highlight.js/styles/github-dark.css";
 // Import your i18n configuration
 import i18n from "../i18n";
 
+import { useEffect } from "react";
+import { getChatSocket } from "@/lib/socket";
+
 export type NextPageWithLayout<P = Record<string, unknown>> = NextPage<P> & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -24,6 +27,16 @@ type AppPropsWithLayout = AppProps & {
 };
 
 const BoilerplateApp = ({ Component, pageProps }: AppPropsWithLayout) => {
+
+  // 소켓 연결
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const socket = getChatSocket();
+    socket.connect();
+  }, []);
+
   // Pages may opt out of the Header/Footer shell via getLayout (e.g. /chat).
   const getLayout =
     Component.getLayout ?? ((page: ReactElement) => <Base>{page}</Base>);

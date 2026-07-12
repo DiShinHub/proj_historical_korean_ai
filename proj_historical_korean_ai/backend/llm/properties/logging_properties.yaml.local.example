@@ -1,22 +1,108 @@
-local:
+common:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    file_formatter:
+      (): uvicorn.logging.DefaultFormatter
+      format: "%(levelprefix)s %(asctime)s.%(msecs)03d - [][%(name)s:%(lineno)d]: %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+      use_colors: false
+    access_formatter:
+      (): uvicorn.logging.AccessFormatter
+      format: "%(levelprefix)s %(asctime)s.%(msecs)03d - [][%(name)s:%(lineno)d]: %(client_addr)s - \"%(request_line)s\" %(status_code)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+      use_colors: true
+    default_formatter:
+      (): uvicorn.logging.DefaultFormatter
+      format: "%(levelprefix)s %(asctime)s.%(msecs)03d - [][%(name)s:%(lineno)d]: %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+      use_colors: true
+    app_formatter:
+      (): uvicorn.logging.DefaultFormatter
+      format: "%(levelprefix)s %(asctime)s.%(msecs)03d - [%(request_id)s][%(name)s:%(lineno)d]: %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+      use_colors: true
+  filters:
+    request_id_logging_filter:
+      (): app.config.logging_config.logging_config_provider.RequestIdLoggingFilter
+  handlers:
+    file_handler:
+      class: logging.handlers.TimedRotatingFileHandler
+      filename: ${APP_LOG_LOCATION:-logs}/logger.log
+      when: D
+      interval: 1
+      formatter: file_formatter
+      backupCount: 30
+    access_handler:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: access_formatter
+      stream: ext://sys.stdout
+    default_handler:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: default_formatter
+      # stream: ext://sys.stderr
+      stream: ext://sys.stdout
+    app_handler:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: app_formatter
+      stream: ext://sys.stdout
+      filters: [ request_id_logging_filter ]
   loggers:
     root:
-      level: DEBUG
+      level: INFO
     uvicorn:
-      level: DEBUG
+      level: INFO
+      propagate: false
+      handlers: [ file_handler, default_handler ]
+    uvicorn.access:
+      level: INFO
+      propagate: false
+      handlers: [ file_handler, app_handler ]
+    uvicorn.error:
+       level: INFO
+       propagate: false
+       handlers: [ file_handler, access_handler ]
     sqlalchemy:
-      level: DEBUG
+      level: WARNING
+      propagate: false
+      handlers: [ file_handler, default_handler ]
     sqlalchemy.engine:
-      level: DEBUG
+      level: WARNING
+      propagate: false
+      handlers: [ file_handler, default_handler ]
     sqlalchemy.engine.Engine:
-      level: DEBUG
+      level: WARNING
+      propagate: false
+      handlers: [ file_handler, default_handler ]
     sqlalchemy.orm:
-      level: DEBUG
+      level: INFO
+      propagate: false
+      handlers: [ file_handler ]
     sqlalchemy.pool:
-      level: DEBUG
+      level: INFO
+      propagate: false
+      handlers: [ file_handler, default_handler ]
     sqlalchemy.dialects:
-      level: DEBUG
-    app:
-      level: DEBUG
+      level: INFO
+      propagate: false
+      handlers: [ file_handler ]
     apscheduler:
-      level: DEBUG
+      level: INFO
+      propagate: false
+      handlers: [ file_handler, default_handler ]
+    app:
+      level: INFO
+      propagate: false
+      handlers: [ file_handler, app_handler ]
+
+# development
+dev:
+
+# staging
+stg:
+
+# production
+prd:
