@@ -55,7 +55,7 @@ class ChatService:
                 ChatSessionEntity(
                     member_seq=user_details.seq,
                     title=title,
-                    status="ACTIVE",
+                    status="active",
                     reg_dt=datetime.datetime.now(),
                     mod_dt=datetime.datetime.now(),
                     use_yn="Y"
@@ -114,10 +114,20 @@ class ChatService:
             raise DevlabException("세션 없음")
             
         try:
+            # 수정 가능한 컬럼만 추출
+            update_data = {
+                k: v
+                for k, v in request_dto.items()
+                if k in {"title", "status", "activate_dt"} and v is not None
+            }
+            if "activate_dt" in update_data:
+                update_data["activate_dt"] = datetime.datetime.fromisoformat(
+                    update_data["activate_dt"]
+                )
+
             await self.__chat_dao.update_chat_session(
                 session_seq=chat_session_seq,
-                title=request_dto.get("title"),
-                status=request_dto.get("status"),
+                **update_data
             )
 
         except Exception as e:

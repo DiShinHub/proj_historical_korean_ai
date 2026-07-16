@@ -12,4 +12,5 @@ class ChatSessionEntity(Base):
     status = Column(String(20), nullable=False, default="ACTIVE")
     reg_dt = Column(TIMESTAMP(timezone=True))
     mod_dt = Column(TIMESTAMP(timezone=True))
+    activate_dt = Column(TIMESTAMP(timezone=True))
     use_yn = Column(String(1), nullable=False, default="Y")

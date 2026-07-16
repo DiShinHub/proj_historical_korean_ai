@@ -31,6 +31,7 @@ class ChatDao:
                 status=chat_session.status,
                 reg_dt=datetime.datetime.now(),
                 mod_dt=datetime.datetime.now(),
+                activate_dt=None,
                 use_yn="Y"
             )
             .returning(ChatSessionEntity.seq)
@@ -83,7 +84,10 @@ class ChatDao:
                     ChatSessionEntity.use_yn == "Y",
                 )
             )
-            .order_by(ChatSessionEntity.seq.desc())
+            .order_by(
+                ChatSessionEntity.activate_dt.desc(),
+                ChatSessionEntity.seq.desc(),
+            )
             .offset(offset)
             .limit(page_size)
         )
