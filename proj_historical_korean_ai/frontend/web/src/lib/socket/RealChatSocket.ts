@@ -77,6 +77,8 @@ export class RealChatSocket extends BaseChatSocket {
         : "connecting"
     );
 
+    console.log("[Socket] 연결 시도", this.url);
+
     try {
 
       this.ws = new WebSocket(this.url);
@@ -123,6 +125,10 @@ export class RealChatSocket extends BaseChatSocket {
 
   }
 
+  /**
+   * Room 구독(Join). 활성 세션의 room_name(=chat_session_seq)에 조인한다.
+   * rooms Set 에 저장해 두면 재연결 성공 시(handleOpen) 자동으로 다시 조인된다.
+   */
   public subscribe(roomName: string): void {
 
     if (!roomName) {
@@ -131,6 +137,8 @@ export class RealChatSocket extends BaseChatSocket {
 
     this.rooms.add(roomName);
 
+    console.log("[Socket] Room Join", roomName);
+
     this.send({
       command: "join_room",
       room_name: roomName,
@@ -138,6 +146,9 @@ export class RealChatSocket extends BaseChatSocket {
 
   }
 
+  /**
+   * Room 구독 해제(Leave). 응답이 끝난 세션의 room 에서 나간다.
+   */
   public unsubscribe(roomName: string): void {
 
     if (!roomName) {
@@ -145,6 +156,8 @@ export class RealChatSocket extends BaseChatSocket {
     }
 
     this.rooms.delete(roomName);
+
+    console.log("[Socket] Room Leave", roomName);
 
     this.send({
       command: "leave_room",
@@ -206,6 +219,14 @@ export class RealChatSocket extends BaseChatSocket {
 
   /**
    * heartbeat 시작
+   *
+   * 주기적으로 ping 을 보내고, 정해진 시간 안에 pong 이 오지 않으면
+   * 죽은 연결로 보고 소켓을 닫는다(→ 자동 재연결).
+   *
+   * ⚠️ 백엔드 라우터는 모든 command 에 room_name 을 요구하므로
+   * ping 에도 현재 구독 중인 room 하나를 실어 보낸다. room_name 이 없으면
+   * 서버가 400 을 돌려주고 pong 을 보내지 않아 매 주기 강제 재연결이 발생한다.
+   * 구독 중인 room 이 하나도 없으면 확인할 대상이 없으므로 ping 을 건너뛴다.
    */
   private startHeartbeat(): void {
 
@@ -221,8 +242,15 @@ export class RealChatSocket extends BaseChatSocket {
         return;
       }
 
+      // 구독 중인 room 중 하나(대표값)를 ping 에 실어 보낸다.
+      const roomName = Array.from(this.rooms)[0];
+      if (!roomName) {
+        return;
+      }
+
       this.send({
-        command: "ping"
+        command: "ping",
+        room_name: roomName,
       });
 
       if (this.pongTimeoutTimer) {
@@ -301,6 +329,9 @@ export class RealChatSocket extends BaseChatSocket {
    */
   private handleOpen = (): void => {
 
+    // 재연결 시도 끝에 열린 것인지(=재연결 성공) 판단용.
+    const wasReconnecting = this.reconnectAttempts > 0;
+
     this.connecting = false;
 
     this.reconnectAttempts = 0;
@@ -308,6 +339,12 @@ export class RealChatSocket extends BaseChatSocket {
     this.setConnected(true);
 
     this.setStatus("open");
+
+    if (wasReconnecting) {
+      console.log("[Reconnect] 재연결 성공");
+    } else {
+      console.log("[Socket] 연결됨(open)");
+    }
 
     if (this.reconnectTimer) {
 
@@ -320,9 +357,13 @@ export class RealChatSocket extends BaseChatSocket {
     this.startHeartbeat();
 
     //
-    // reconnect 후 자동 Room 복구
+    // reconnect 후 자동 Room 복구:
+    // 재연결되면 서버 입장에서는 새 소켓이므로, 이전에 조인했던 room 을
+    // 다시 조인해줘야 응답을 계속 받을 수 있다.
     //
     this.rooms.forEach((room) => {
+
+      console.log("[Reconnect] Room 재조인", room);
 
       this.send({
         command: "join_room",
@@ -348,11 +389,15 @@ export class RealChatSocket extends BaseChatSocket {
 
     if (this.manualClose) {
 
+      console.log("[Socket] 연결 종료(manual)");
+
       this.setStatus("closed");
 
       return;
 
     }
+
+    console.warn("[Socket] 연결 끊김 → 재연결 예약");
 
     this.scheduleReconnect();
 

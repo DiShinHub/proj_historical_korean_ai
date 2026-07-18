@@ -10,13 +10,14 @@ class PromptHistoryDao():
             llm_model_name,
             prompt_template_name,
             prompt_core,
-            response
+            response,
+            member_seq
         ):
         
         query = """
             INSERT INTO public.prompt_history
-            (prompt_history_seq, llm_model_name,  prompt_template_name, prompt_core, response, reg_dt)
-            VALUES(nextval('prompt_history_prompt_history_seq_seq'::regclass), %s, %s, %s, %s, %s, now());
+            (seq, llm_model_name, prompt_template_name, prompt_core, response, member_seq, reg_dt)
+            VALUES(nextval('prompt_history_seq_seq'::regclass), %s, %s, %s, %s, %s, now());
 
         """
         
@@ -24,7 +25,8 @@ class PromptHistoryDao():
             llm_model_name,
             prompt_template_name,
             prompt_core,
-            response
+            response,
+            member_seq
         ]
         return self.postgres.execute_query_with_commit(query=query, binds=binds)
                 

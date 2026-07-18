@@ -31,7 +31,7 @@ class ChatDao:
                 status=chat_session.status,
                 reg_dt=datetime.datetime.now(),
                 mod_dt=datetime.datetime.now(),
-                activate_dt=None,
+                activate_dt=datetime.datetime.now(),
                 use_yn="Y"
             )
             .returning(ChatSessionEntity.seq)

@@ -70,7 +70,7 @@ export abstract class BaseChatSocket implements IChatSocket {
    * 현재 Join 되어있는 Room 목록
    */
   getSubscribedRooms(): string[] {
-    return [...this.rooms];
+    return Array.from(this.rooms);
   }
 
   /**
@@ -121,18 +121,39 @@ export abstract class BaseChatSocket implements IChatSocket {
   }
 
   /**
-   * 서버 메시지 전달
+   * 서버 프레임을 정규화해서 Message Listener 로 전달한다.
+   *
+   * [소켓 이벤트 흐름]
+   *  worker emit → 서버가 원본 dict 전달 → 브라우저 onmessage → 이 함수
+   *
+   * 실제 룸 응답 프레임은 평평한 형태다:
+   *   { command, room_name, llm_response: {...} }
+   * 반면 join/leave/400 같은 ack 프레임에는 llm_response 가 없다.
+   * → llm_response 가 없는 프레임(순수 ack/에러)은 채팅 흐름과 무관하므로
+   *   Listener 로 전달하지 않고 여기서 무시한다.
    */
   protected dispatchEnvelope(envelope: ServerEnvelope): void {
+    // 평평한 프레임(우선) → 과거 래핑 구조(하위호환) 순으로 room_name/payload 를 찾는다.
     const roomName =
+      envelope.room_name ??
+      envelope.llm_response?.room_name ??
       envelope.client_data?.room_name ??
       envelope.client_data?.llm_response?.room_name ??
       "";
 
-    const payload = envelope.client_data?.llm_response ?? {};
+    const payload =
+      envelope.llm_response ?? envelope.client_data?.llm_response;
+
+    // llm_response 도 없고 room_name 도 없으면 join/leave/ping 등의 단순 ack →
+    // 채팅 화면과 무관하므로 무시한다(오류 처리하지 않는다).
+    if (!payload && !roomName) {
+      return;
+    }
+
+    console.log("[Socket] 응답 수신", roomName, payload ?? envelope);
 
     this.messageHandlers.forEach((handler) => {
-      handler(roomName, payload, envelope);
+      handler(roomName, payload ?? {}, envelope);
     });
   }
 

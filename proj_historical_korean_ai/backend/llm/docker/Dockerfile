@@ -21,4 +21,4 @@ ENV POETRY_HOME /usr/local
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local python3 -
 
 RUN poetry install
-CMD poetry run uvicorn --host 0.0.0.0 --port ${APP_PORT} app.main:app
+CMD poetry run uvicorn --host 0.0.0.0 --port ${APP_PORT} --no-access-log app.main:app

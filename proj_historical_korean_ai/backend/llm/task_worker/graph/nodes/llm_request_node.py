@@ -34,7 +34,7 @@ class LLMRequestNode(Runnable):
     """
     
     def __init__(self, prompt_template):
-        self.logger = LogTool.get_logger(self.__class__.__name__) 
+        self.__logger = LogTool.get_logger(self.__class__.__name__) 
         self.prompt_template = prompt_template
         
     def invoke(self, state: dict, config: Optional[RunnableConfig] = None) -> LanggraphState:
@@ -72,7 +72,7 @@ class LLMRequestNode(Runnable):
         # --- llm & chain 실행
         llm = state.get("llm")
         prompt_core = state.get("prompt_core") 
-        
+
         llm_chain = LLMChain(llm=llm, prompt=prompt_obj)
         result = llm_chain.invoke({"prompt_core": prompt_core})
         
@@ -80,6 +80,7 @@ class LLMRequestNode(Runnable):
         prompt_template_name = self.prompt_template.__qualname__
         llm_node_response_text_prev = result["text"]
         llm_node_response_dict_prev = JsonTool().parse_json_data_from_fulltext(result["text"])
+
         llm_node_responses = state.get("llm_node_responses")
         llm_node_responses.update(
             {
@@ -91,7 +92,12 @@ class LLMRequestNode(Runnable):
         )
         
         # --- history
-        BaseRules.insert_prompt_history(state, prompt_core=prompt_core, prompt_template_name=self.prompt_template.__qualname__, llm_node_response_text_prev=llm_node_response_text_prev)
+        BaseRules.insert_prompt_history(
+            state, 
+            prompt_core=prompt_core, 
+            prompt_template_name=self.prompt_template.__qualname__, 
+            llm_node_response_text_prev=llm_node_response_text_prev
+        )
         
         return {
             **state, 

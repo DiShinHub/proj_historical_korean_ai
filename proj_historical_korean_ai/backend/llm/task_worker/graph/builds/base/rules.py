@@ -9,7 +9,6 @@ class BaseRules:
     공통적으로 쓰이는 rule 정의
 
     """
-    logger = LogTool.get_logger(__qualname__) 
     
     @staticmethod
     def initialize_graph(state: LanggraphState, **kwargs):
@@ -107,7 +106,7 @@ class BaseRules:
         ----------
             update (kwargs): 업데이트 할 값
         """
-        
+
         if kwargs:
             _params = {}
             valid_keys = get_type_hints(LanggraphState).keys()
@@ -124,29 +123,29 @@ class BaseRules:
         }
     
     @staticmethod
-    def generate_input_message(text, user_seq):
+    def generate_input_message(text, member_seq):
         """
         input_message 생성
         
         Parameters
         ----------
             text (str): 메세지
-            user_seq (int): 요청자 시퀀스
+            member_seq (int): 요청자 시퀀스
             
         Returns 
         ----------
             input_message (str): 그래프에 삽입할 메세지 
             
             e.g.) 
-            input_message : <!rule^.^user_seq=0>2025년 7월21일 오후 8시에 1시간 동안 캡스톤 프로젝트 중간보고 미팅할 예정이야. Meeting Room으로 예약해.
-            prompt_rule : <!rule^.^user_seq=0>
+            input_message : <!rule^.^member_seq=0>2025년 7월21일 오후 8시에 1시간 동안 캡스톤 프로젝트 중간보고 미팅할 예정이야. Meeting Room으로 예약해.
+            prompt_rule : <!rule^.^member_seq=0>
             prompt_core : 2025년 7월21일 오후 8시에 1시간 동안 캡스톤 프로젝트 중간보고 미팅할 예정이야. Meeting Room으로 예약해.
         """
         
         rule_text = "<!rule^"
         
         # employ info
-        rule_text += f'.^user_seq={user_seq}'
+        rule_text += f'.^member_seq={member_seq}'
         rule_text += f'!>'
         
         input_message = f"{rule_text}{text}"
@@ -166,7 +165,6 @@ class BaseRules:
             prompt_rule (str): 프롬프트 룰파트, 그래프 내에서 룰파트에 사용함 
             prompt_core (str): 프롬프트 코어파트, 그래프 내에서 LLM파트에 사용함 
         """
-        
         input_message = state.get("input_message")
         
         if "<!rule^" in input_message:
@@ -195,10 +193,9 @@ class BaseRules:
             
         Returns 
         ----------
-            user_seq (int): 요청자 시퀀스
+            member_seq (int): 요청자 시퀀스
         """
-        
-        user_seq = None
+        member_seq = None
         prompt_rule = state.get("prompt_rule")
         if prompt_rule:
             prompt_rule_dict = {}
@@ -207,10 +204,10 @@ class BaseRules:
                     key, value = item.split('=', 1)
                     prompt_rule_dict[key] = value
             
-            user_seq = prompt_rule_dict.get("user_seq")
+            member_seq = prompt_rule_dict.get("member_seq")
         
         return {
-            "user_seq": user_seq,
+            "member_seq": member_seq,
         }
         
     @staticmethod
@@ -230,8 +227,7 @@ class BaseRules:
             prompt_template_name (str) : 프롬프트 탬플릿(객체) 이름
             llm_node_response_text_prev (str) : 노드 처리 결과
         """
-        
-        user_seq = BaseRules.parse_prompt_rule(state).get("user_seq")
+        member_seq = BaseRules.parse_prompt_rule(state).get("member_seq")
         
         llm_model_name = None
         llm = state.get("llm")
@@ -243,7 +239,8 @@ class BaseRules:
             llm_model_name=llm_model_name,
             prompt_template_name=prompt_template_name,
             prompt_core=prompt_core,
-            response=llm_node_response_text_prev
+            response=llm_node_response_text_prev,
+            member_seq=member_seq
         )
         return {
             **state

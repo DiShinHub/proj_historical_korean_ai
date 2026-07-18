@@ -1,28 +1,47 @@
-from langchain.llms.base import LLM
+import os
 from typing import Optional, List, Dict, Any
-import requests
+
+from pydantic import PrivateAttr
+from langchain.llms.base import LLM
+from openai import OpenAI
+
 
 class ChatGPT(LLM):
-    model: str = ""
-    base_url: str = ""
-    max_tokens: int = 200
+    model: str = "gpt-5-mini"
+    max_tokens: int = 1000
 
-    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        headers = {"Content-Type": "application/json"}
-        data = {
-            "model": self.model,
-            "prompt": prompt,
-            "max_tokens": self.max_tokens
-        }
-        response = requests.post(self.base_url, headers=headers, json=data)
-        if response.status_code != 200:
-            raise ValueError(f"Request failed: {response.status_code}, {response.text}")
-        return response.json()['choices'][0]['text']
+    _client: OpenAI = PrivateAttr()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._client = OpenAI(
+            api_key=os.environ["CHAT_GPT_SECRET_KEY"]
+        )
+
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+    ) -> str:
+
+        response = self._client.responses.create(
+            model=self.model,
+            input=prompt,
+            max_output_tokens=self.max_tokens,
+            reasoning={
+                "effort": "minimal"
+            }
+        )
+
+        return response.output_text
 
     @property
     def _identifying_params(self) -> Dict[str, Any]:
-        return {"model": self.model}
+        return {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+        }
 
     @property
     def _llm_type(self) -> str:
-        return "custom_vllm"
+        return "chatgpt"

@@ -4,10 +4,6 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 import * as messageApi from "@/lib/api/messages";
-import { sendPrompt } from "@/lib/api/prompts";
-import type { ApiError } from "@/lib/api/types";
-import { env } from "@/config/env";
-import { mockBus } from "@/lib/socket";
 import { uuid } from "@/lib/uuid";
 
 export type MessageStatus =
@@ -51,27 +47,43 @@ function list(state: MessagesState, seq: number): ChatMessage[] {
   return (state.bySession[seq] ??= []);
 }
 
+/**
+ * 서버에 저장된 대화 내역을 불러온다(새로고침 시 질문/응답 복원).
+ *
+ * [role 규약] chat_message.role: "USER" = 사용자 입력, 그 외("SYSTEM"/"ASSISTANT")
+ * = 시스템(어시스턴트) 응답. 백엔드는 응답을 "SYSTEM" 으로 저장하므로,
+ * "USER" 가 아니면 모두 어시스턴트 버블로 렌더한다.
+ */
 export const fetchMessages = createAsyncThunk(
   "messages/fetch",
   async (sessionSeq: number) => {
     const rows = await messageApi.listMessages(sessionSeq);
-    const messages: ChatMessage[] = rows.map((r) => ({
-      id: `srv-${r.seq}`,
-      seq: r.seq,
-      role: r.role === "ASSISTANT" ? "ASSISTANT" : "USER",
-      content: r.content,
-      status: r.role === "ASSISTANT" ? "done" : "sent",
-      regDt: r.reg_dt,
-    }));
+    const messages: ChatMessage[] = rows.map((r) => {
+      const isUser = r.role === "USER";
+      return {
+        id: `srv-${r.seq}`,
+        seq: r.seq,
+        role: isUser ? "USER" : "ASSISTANT",
+        content: r.content,
+        status: isUser ? "sent" : "done",
+        regDt: r.reg_dt,
+      };
+    });
+    console.log("[API] 대화 내역 로드", sessionSeq, `${messages.length}건`);
     return { sessionSeq, messages };
   }
 );
 
 /**
- * Optimistic send: renders the user bubble + an assistant placeholder
- * immediately, persists the user message, then triggers the LLM task.
- * The assistant answer arrives asynchronously via the socket (see
- * messagesSlice `assistantChunk` / `assistantDone`, dispatched by useChatSocket).
+ * 질문 전송(낙관적 렌더).
+ *
+ * [흐름]  사용자 버블 + 어시스턴트 플레이스홀더 즉시 렌더
+ *        → POST /chat_message (USER 메시지 저장 + 백엔드가 worker 태스크 enqueue)
+ *        → (이후) worker 가 소켓으로 응답 push → useChatRuntime 가 화면 반영
+ *
+ * ⚠️ 트리거는 POST /chat_message 하나뿐이다. 이 API 가 USER 메시지 저장과
+ * 동시에 Redis 큐(LBS_001)에 worker 태스크를 넣으므로, 별도의 /na/prompts
+ * 호출은 하지 않는다(호출하면 한 질문에 응답이 2번 생성됨 → 1질문1응답 위반).
  */
 export const sendMessage = createAsyncThunk(
   "messages/send",
@@ -83,15 +95,20 @@ export const sendMessage = createAsyncThunk(
     const userId = uuid();
     const assistantId = uuid();
 
+    // 상태 변경: 사용자 버블(sending) + 어시스턴트 플레이스홀더(waiting) 추가.
     dispatch(
       optimisticSend({ sessionSeq, userId, assistantId, content, attachmentName })
     );
 
-    // 1. Persist the user message (best effort).
+    // 사용자 메시지 저장 + LLM 태스크 트리거(room_name === chat_session_seq).
     try {
+      console.log("[API] 질문 저장", { sessionSeq, content });
       const seq = await messageApi.createMessage(sessionSeq, content);
+      // 상태 변경: 사용자 메시지 저장 확정(sent) + 서버 seq 반영.
       dispatch(userMessageConfirmed({ sessionSeq, userId, seq }));
+      console.log("[API] 질문 저장 완료 → worker 트리거", { sessionSeq, seq });
     } catch (e) {
+      // 상태 변경: 저장 실패 → 사용자 버블 failed, 어시스턴트 플레이스홀더 error.
       dispatch(userMessageFailed({ sessionSeq, userId }));
       dispatch(
         assistantErrored({
@@ -103,23 +120,7 @@ export const sendMessage = createAsyncThunk(
       throw e;
     }
 
-    // 2. Trigger the LLM task. room_name === chat_session_seq (checkpoint #4).
-    const roomName = String(sessionSeq);
-    try {
-      await sendPrompt(content, roomName);
-      if (env.useMockSocket) mockBus.emitPrompt(roomName, content);
-    } catch (e) {
-      dispatch(
-        assistantErrored({
-          sessionSeq,
-          assistantId,
-          error: "요청 전송에 실패했습니다.",
-        })
-      );
-      throw e;
-    }
-
-    // 3. Timeout guard — if no chunk arrives, surface an error + retry.
+    // 타임아웃 가드 — 정해진 시간 안에 응답이 오지 않으면 오류 표시(+재시도 유도).
     setTimeout(() => {
       const s = getState() as { messages: MessagesState };
       const msg = s.messages.bySession[sessionSeq]?.find(
@@ -228,6 +229,37 @@ const messagesSlice = createSlice({
       }
       state.pendingAssistant[sessionSeq] = undefined;
     },
+    /**
+     * 단발(1질문→1응답) 완료 처리.
+     *
+     * 백엔드 worker 는 응답을 한 번의 emit 으로 통째로 보낸다(스트리밍 아님).
+     * 그래서 청크 누적(assistantChunk)이 아니라 content 를 통째로 "치환"하고
+     * 바로 완료(done) 상태로 만든다.
+     *
+     * 상태 변경: 대기 중이던 어시스턴트 메시지 → content 채움 + status "done",
+     *            그리고 pendingAssistant 해제(사이드바 로딩 자동 제거).
+     */
+    assistantResolved(
+      state,
+      action: PayloadAction<{
+        sessionSeq: number;
+        text: string;
+        audioUrl?: string;
+        messageSeq?: number;
+      }>
+    ) {
+      const { sessionSeq, text, audioUrl, messageSeq } = action.payload;
+      const id = state.pendingAssistant[sessionSeq];
+      if (!id) return;
+      const m = state.bySession[sessionSeq]?.find((x) => x.id === id);
+      if (m) {
+        m.content = text;
+        m.status = "done";
+        if (audioUrl) m.audioUrl = audioUrl;
+        if (messageSeq != null) m.seq = messageSeq;
+      }
+      state.pendingAssistant[sessionSeq] = undefined;
+    },
     assistantErrored(
       state,
       action: PayloadAction<{
@@ -285,6 +317,7 @@ export const {
   userMessageFailed,
   assistantChunk,
   assistantDone,
+  assistantResolved,
   assistantErrored,
   removeMessage,
 } = messagesSlice.actions;

@@ -24,10 +24,14 @@ export async function createSession(title: string): Promise<number> {
   return unwrap(res).chat_session_seq;
 }
 
-/** PUT /au/chat/chat_session/chat_session_seq/{seq} */
+/**
+ * PUT /au/chat/chat_session/chat_session_seq/{seq}
+ * 수정 가능 필드: title, status("active"|"inactive"), activate_dt(ISO 문자열).
+ * (백엔드 put_chat_session 이 이 세 필드만 화이트리스트로 반영한다.)
+ */
 export async function updateSession(
   seq: number,
-  patch: { title?: string; status?: string }
+  patch: { title?: string; status?: string; activate_dt?: string }
 ): Promise<void> {
   await httpClient.put(`${BASE}/chat_session_seq/${seq}`, patch);
 }

@@ -1,4 +1,4 @@
-from task_worker.graph.llm.my_llm import MyLLM
+
 from task_worker.graph.states.langgraph_state import LanggraphState
 
 from task_worker.graph.nodes.llm_request_node import LLMRequestNode
@@ -16,7 +16,7 @@ class BaseBuilder():
     
     def __init__(
         self, 
-        llm=MyLLM()
+        llm
     ):
         self.graph = None
         self.builder = None

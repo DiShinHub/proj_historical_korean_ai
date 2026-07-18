@@ -110,11 +110,8 @@ class WebSocketModule:
             await self.ws.send(json.dumps(payload))
 
         except Exception as e:
-
             self.__logger.error(f"emit failed : {e}")
-
             await self.reconnect()
-
             await self.ws.send(json.dumps(payload))
 
 # single tone

@@ -56,8 +56,6 @@ class ChatService:
                     member_seq=user_details.seq,
                     title=title,
                     status="active",
-                    reg_dt=datetime.datetime.now(),
-                    mod_dt=datetime.datetime.now(),
                     use_yn="Y"
                 )
             )
@@ -202,13 +200,15 @@ class ChatService:
         # task_worker에게 데이터 전송
         service_cd = "LBS_001"
         task_id = str(uuid.uuid4())
+        input_message = f"<!rule^.^member_seq={user_details.seq}!>{content}"
         task = {
             "task_id": task_id,
             "task_status": "wait",
             "retry_cnt" : 0,
             "params": {
-                "content" : content,
-                "room_name" : str(chat_session_seq)
+                "input_message" : input_message,
+                "room_name" : str(chat_session_seq),
+                "chat_session_seq" : chat_session_seq
             },
         }
         task = json.dumps(task)

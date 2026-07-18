@@ -5,7 +5,7 @@ import {
   createSession,
   deleteSession,
   renameSession,
-  setActiveSession,
+  switchSession,
   type ChatSession,
 } from "@/redux/slices/sessionsSlice";
 import type { SocketStatus } from "@/lib/socket";
@@ -33,6 +33,8 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const status = useAppSelector((s) => s.sessions.status);
   const memberId = useAppSelector((s) => s.auth.me?.memberId ?? "admin0");
   const socketStatus = useAppSelector((s) => s.socket.status);
+  // 세션별 "응답 대기 중" 여부(값이 있으면 대기 중). 로딩 표시에 사용.
+  const pendingAssistant = useAppSelector((s) => s.messages.pendingAssistant);
 
   const [editingSeq, setEditingSeq] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -41,8 +43,9 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     dispatch(createSession({ title: "새 대화" }));
   };
 
+  // 세션 클릭 → 전환(switchSession 이 활성화/비활성화 + Room 정책 + 리스트 갱신을 처리).
   const handleSelect = (seq: number) => {
-    if (seq !== activeSeq) dispatch(setActiveSession(seq));
+    if (seq !== activeSeq) dispatch(switchSession(seq));
   };
 
   const startRename = (session: ChatSession) => {
@@ -127,6 +130,10 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         {sessions.map((session) => {
           const isActive = session.seq === activeSeq;
           const isEditing = editingSeq === session.seq;
+          // 로딩 정책: 응답 대기 중인 세션은 사이드바에 로딩 표시.
+          // (특히 지금 보고 있지 않은 비활성 세션의 대기 상태를 알리는 용도.
+          //  응답 수신 시 pendingAssistant 가 해제되며 자동으로 사라진다.)
+          const isWaiting = Boolean(pendingAssistant[session.seq]);
           return (
             <div
               key={session.seq}
@@ -156,6 +163,14 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 />
               ) : (
                 <>
+                  {/* 응답 대기 중이면 제목 앞에 로딩 스피너 표시 */}
+                  {isWaiting ? (
+                    <span
+                      className="session-spinner"
+                      aria-label="응답 대기 중"
+                      title="응답 대기 중"
+                    />
+                  ) : null}
                   <span className="session-title">{session.title}</span>
                   <span className="session-actions">
                     <button
