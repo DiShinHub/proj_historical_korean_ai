@@ -94,3 +94,5 @@ docker-compose.override.yml
 
 _toy/
 __design/
+
+*.pem
