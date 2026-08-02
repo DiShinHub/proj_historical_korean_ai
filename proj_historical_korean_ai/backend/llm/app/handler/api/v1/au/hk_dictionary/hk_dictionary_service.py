@@ -253,6 +253,11 @@ class HkDictionaryService:
         if not raw_text:
             raise DevlabException("raw_text는 필수 항목입니다.")
 
+        historical_period_start_dt = request_dto.get("historical_period_start_dt")
+        historical_period_end_dt = request_dto.get("historical_period_end_dt")
+        room_name = request_dto.get("room_name")
+        reg_member_seq = user_details.seq
+
         # task_worker에게 데이터 전송
         service_cd = "TSK_002"
         task_id = str(uuid.uuid4())
@@ -263,10 +268,14 @@ class HkDictionaryService:
             "retry_cnt" : 0,
             "params": {
                 "input_message" : input_message,
+                "historical_period_start_dt" : historical_period_start_dt,
+                "historical_period_end_dt" : historical_period_end_dt,
+                "room_name" : room_name,
+                "reg_member_seq" : reg_member_seq,
             },
         }
         task = json.dumps(task)
-        
+
         try : 
             self.get_redis_connection().lpush(service_cd, task)
 

@@ -31,10 +31,10 @@ class HKDictionaryService():
         
         params = task.get("params")
         input_message = params.get("input_message")
-        reg_member_seq = params.get("reg_member_seq", 1)
         historical_period_start_dt = params.get("historical_period_start_dt")
         historical_period_end_dt = params.get("historical_period_end_dt")
         room_name = params.get("room_name")
+        reg_member_seq = params.get("reg_member_seq", 1)
 
         # LLM 처리 
         try:
@@ -43,7 +43,8 @@ class HKDictionaryService():
         except Exception as e:
             self.handle_response(
                 result = "fail", 
-                llm_msg = "관리자에게 문의 주세요."
+                llm_msg = "관리자에게 문의 주세요.",
+                room_name = room_name
             )
             self.__logger.info(f"HKDictionaryService.handle_hk_dictionary.handle_llm_pipe, error : {str(e)}")
             return
@@ -60,7 +61,8 @@ class HKDictionaryService():
         except Exception as e:
             self.handle_response(
                 result = "fail", 
-                llm_msg = "관리자에게 문의 주세요."
+                llm_msg = "관리자에게 문의 주세요.",
+                room_name = room_name
             )
             self.__logger.info(f"HKDictionaryService.handle_hk_dictionary.handle_word_pairs, error : {str(e)}")
             return
@@ -68,7 +70,8 @@ class HKDictionaryService():
         self.handle_response(
             result = "success", 
             llm_msg = "처리성공",
-            items_cnt = items_cnt
+            items_cnt = items_cnt,
+            room_name = room_name
         )
     
     def handle_llm_pipe(
