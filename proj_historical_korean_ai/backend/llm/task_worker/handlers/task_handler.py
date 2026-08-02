@@ -1,6 +1,7 @@
 
 from task_worker.tool.log_tool import LogTool
 from task_worker.handlers.prompts.prompts_handler import PromptsHandler
+from task_worker.handlers.hk_dictionary.hk_dictionary_handler import HKDictionaryService
 from task_worker.module.redis_module import RedisModule
 
 import json
@@ -12,15 +13,20 @@ class TaskHandler():
     def __init__(self):
         self.redis = RedisModule()
         self.prompts_handler = PromptsHandler()
+        self.hk_dictionary_handler = HKDictionaryService()
         
     def run(self):
         self.__logger.debug(f'task handler startup complete.')
         
         while True:
             try:
-                task = self.pop_task("LBS_001")
+                task = self.pop_task("TSK_001")
                 if task:
                     self.prompts_handler.handle_prompts(task)
+
+                task = self.pop_task("TSK_002")
+                if task:
+                    self.hk_dictionary_handler.handle_hk_dictionary_dump_raw(task)
                             
             except Exception as e :
                 self.__logger.info(f"e : {e}")
@@ -65,7 +71,7 @@ class TaskHandler():
             
         elif e.__class__.__name__ == "LlmException":
             if retry_cnt < RETRY_MAX:
-                service_cd = "LBS_001"
+                service_cd = "TSK_001"
                 task = {
                     "task_id": task_id,
                     "task_status": "retry",

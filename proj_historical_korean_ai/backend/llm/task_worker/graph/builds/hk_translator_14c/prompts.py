@@ -1,7 +1,7 @@
 from task_worker.graph.template_schema.prompt_template_schema import PromptTemplateSchema
 from task_worker.graph.builds.base.prompts import BasePrompts
 
-class OldkoreanTranslator14CPrompts(BasePrompts):
+class HKTranslator14CPrompts(BasePrompts):
     """
     프롬프트 정의 클래스
     """

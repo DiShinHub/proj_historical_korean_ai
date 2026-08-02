@@ -7,8 +7,8 @@ from openai import OpenAI
 
 
 class ChatGPT(LLM):
-    model: str = "gpt-5-mini"
-    max_tokens: int = 1000
+    model: str = "gpt-5.6"
+    max_tokens: int = 10000
 
     _client: OpenAI = PrivateAttr()
 
@@ -29,7 +29,7 @@ class ChatGPT(LLM):
             input=prompt,
             max_output_tokens=self.max_tokens,
             reasoning={
-                "effort": "minimal"
+                "effort": "low"
             }
         )
 

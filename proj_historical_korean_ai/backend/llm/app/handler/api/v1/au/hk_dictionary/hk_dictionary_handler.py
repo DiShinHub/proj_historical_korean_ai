@@ -69,3 +69,11 @@ async def delete_hk_dictionary(
 ) -> ResultVo:
     """고어 사전 항목 삭제 (Soft Delete)"""
     return await service.delete_hk_dictionary(seq, user_details)
+
+@router.post("/dump")
+async def dump_raw_hk_dictionary(
+    request_dto: Dict[str, Any] = Body(...),
+    user_details: UserDetailsDto = Depends(context_repository.get_user_details)
+) -> ResultVo:
+    """고어 사전 항목 등록"""
+    return await service.dump_raw_hk_dictionary(request_dto, user_details)

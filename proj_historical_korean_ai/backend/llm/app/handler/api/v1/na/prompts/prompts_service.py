@@ -26,7 +26,7 @@ class LlmBridgesService:
         ) -> ResultVo:
         
         # 테스크 셋팅
-        service_cd = "LBS_001"
+        service_cd = "TSK_001"
         task_id = str(uuid.uuid4())
         task = {
             "task_id": task_id,

@@ -82,7 +82,7 @@ export const fetchMessages = createAsyncThunk(
  *        → (이후) worker 가 소켓으로 응답 push → useChatRuntime 가 화면 반영
  *
  * ⚠️ 트리거는 POST /chat_message 하나뿐이다. 이 API 가 USER 메시지 저장과
- * 동시에 Redis 큐(LBS_001)에 worker 태스크를 넣으므로, 별도의 /na/prompts
+ * 동시에 Redis 큐(TSK_001)에 worker 태스크를 넣으므로, 별도의 /na/prompts
  * 호출은 하지 않는다(호출하면 한 질문에 응답이 2번 생성됨 → 1질문1응답 위반).
  */
 export const sendMessage = createAsyncThunk(

@@ -30,7 +30,7 @@ class EventNode(Runnable):
         try:
             event_params = state.get("event_params") 
             if not event_params: 
-                event_params = state.get("llm_node_response_dict_prev") # state에 event_params이 없으면 이전 노드의 dict type 결과물을 사용
+                event_params = state.get("llm_node_response_json_prev") # state에 event_params이 없으면 이전 노드의 dict type 결과물을 사용
             
             result = self.event_tool.invoke(event_params)
             

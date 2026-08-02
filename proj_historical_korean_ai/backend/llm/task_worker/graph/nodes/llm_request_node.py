@@ -30,7 +30,7 @@ class LLMRequestNode(Runnable):
     ----------
         response_bool (bool): 응답 결과
         llm_node_response_text_prev (text): 응답 텍스트
-        llm_node_response_dict_prev (dict): 응답 텍스트에서 파싱한 json (파싱 불가면 None) 
+        llm_node_response_json_prev (dict): 응답 텍스트에서 파싱한 json (파싱 불가면 None) 
     """
     
     def __init__(self, prompt_template):
@@ -79,14 +79,14 @@ class LLMRequestNode(Runnable):
         # --- 결과 처리
         prompt_template_name = self.prompt_template.__qualname__
         llm_node_response_text_prev = result["text"]
-        llm_node_response_dict_prev = JsonTool().parse_json_data_from_fulltext(result["text"])
+        llm_node_response_json_prev = JsonTool().parse_json_data_from_fulltext(result["text"])
 
         llm_node_responses = state.get("llm_node_responses")
         llm_node_responses.update(
             {
                 prompt_template_name : {
                     "llm_node_response_text" : llm_node_response_text_prev,
-                    "llm_node_response_dict" : llm_node_response_dict_prev
+                    "llm_node_response_json" : llm_node_response_json_prev
                 }
             }
         )
@@ -102,6 +102,6 @@ class LLMRequestNode(Runnable):
         return {
             **state, 
             "llm_node_response_text_prev": llm_node_response_text_prev,
-            "llm_node_response_dict_prev": llm_node_response_dict_prev,
+            "llm_node_response_json_prev": llm_node_response_json_prev,
             "llm_node_responses" : llm_node_responses
         }

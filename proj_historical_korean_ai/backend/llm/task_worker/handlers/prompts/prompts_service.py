@@ -1,6 +1,6 @@
 
 from task_worker.tool.log_tool import LogTool
-from task_worker.graph.builds.old_korean_translator_14c.graph_builder import OldkoreanTranslator14CBuilder
+from task_worker.graph.builds.hk_translator_14c.graph_builder import HKTranslator14CBuilder
 from task_worker.graph.llm.chat_gpt import ChatGPT
 
 from task_worker.dao.chat_dao import chat_dao
@@ -13,7 +13,7 @@ class PromptsService():
     __logger = LogTool.get_logger(__qualname__)
     
     def __init__(self):
-        self.old_korean_translator_14c_graph = OldkoreanTranslator14CBuilder(llm=ChatGPT()).build_graph()
+        self.hk_translator_14c_graph = HKTranslator14CBuilder(llm=ChatGPT()).build_graph()
 
         self.chat_dao = chat_dao
         self.web_socket_module = web_socket_module
@@ -92,7 +92,7 @@ class PromptsService():
         ----------
         llm_pipe_result: llm_pipe 처리 결과
         """
-        llm_pipe_result = self.old_korean_translator_14c_graph.invoke({"input_message": input_message})
+        llm_pipe_result = self.hk_translator_14c_graph.invoke({"input_message": input_message})
 
         # TODO : 의도 분류 llm
         # TODO : 의도 분류에 따른 graph 실행
@@ -103,11 +103,11 @@ class PromptsService():
         
         # # 의도 분류 
         # result = self.im_graph.invoke({"input_message": input_message})
-        # if result.get('llm_node_response_dict_prev') == None or\
-        #     result.get('llm_node_response_dict_prev').get("intent") == None:
-        #     raise LlmException("im_graph fail, no llm_node_response_dict_prev")
+        # if result.get('llm_node_response_json_prev') == None or\
+        #     result.get('llm_node_response_json_prev').get("intent") == None:
+        #     raise LlmException("im_graph fail, no llm_node_response_json_prev")
         
-        # intent = result.get('llm_node_response_dict_prev').get("intent")
+        # intent = result.get('llm_node_response_json_prev').get("intent")
         
         # # 의도에 따른 graph 실행
         # llm_response = None 

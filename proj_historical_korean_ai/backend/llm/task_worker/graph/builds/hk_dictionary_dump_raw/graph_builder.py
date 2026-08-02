@@ -4,12 +4,12 @@ from task_worker.graph.states.langgraph_state import LanggraphState
 from task_worker.graph.nodes.llm_request_node import LLMRequestNode
 from task_worker.graph.nodes.rule_node import RuleNode
 
-from task_worker.graph.builds.old_korean_translator_14c.rules import OldkoreanTranslator14CRules
-from task_worker.graph.builds.old_korean_translator_14c.prompts import OldkoreanTranslator14CPrompts
+from task_worker.graph.builds.hk_dictionary_dump_raw.rules import HKDictionaryDumpRawCRules
+from task_worker.graph.builds.hk_dictionary_dump_raw.prompts import HKDictionaryDumpRawCPrompts
 
 from langgraph.graph import StateGraph, END
 
-class OldkoreanTranslator14CBuilder():
+class HKDictionaryDumpRawCBuilder():
     """_summary_
     프롬프트 튜닝 없이 llm 요청
     """
@@ -26,16 +26,18 @@ class OldkoreanTranslator14CBuilder():
     def build_graph(self):
         
         # 노드 셋팅
-        self.builder.add_node("initialize_graph", RuleNode(rule=OldkoreanTranslator14CRules.initialize_graph, llm=self.llm))
-        self.builder.add_node("prompt_14c", LLMRequestNode(OldkoreanTranslator14CPrompts.prompt_14c))
-        self.builder.add_node("regen_llm_node_response_dict_prev", RuleNode(rule=OldkoreanTranslator14CRules.regen_llm_node_response_dict_prev))
-        
+        self.builder.add_node("initialize_graph", RuleNode(rule=HKDictionaryDumpRawCRules.initialize_graph, llm=self.llm))
+        self.builder.add_node("prompt_remove_useless", LLMRequestNode(HKDictionaryDumpRawCPrompts.prompt_remove_useless))
+        self.builder.add_node("update_prompt_core", RuleNode(rule=HKDictionaryDumpRawCRules.update_prompt_core))
+        self.builder.add_node("prompt_hk_dictionary_dump_raw", LLMRequestNode(HKDictionaryDumpRawCPrompts.prompt_hk_dictionary_dump_raw))
+
         # 노드 연결
         self.builder.set_entry_point("initialize_graph")
         node_sequence = [
             "initialize_graph",
-            "prompt_14c",
-            "regen_llm_node_response_dict_prev",
+            "prompt_remove_useless",
+            "update_prompt_core",
+            "prompt_hk_dictionary_dump_raw",
             END
         ]
         self.add_linear_edges(node_sequence)

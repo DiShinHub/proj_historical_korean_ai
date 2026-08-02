@@ -3,13 +3,13 @@ from task_worker.graph.builds.base.rules import BaseRules
 
 from typing import get_type_hints, get_origin, Any
 
-class OldkoreanTranslator14CRules(BaseRules):
+class HKTranslator14CRules(BaseRules):
     """_summary_ 
     rule 정의
     """
 
     @staticmethod
-    def regen_llm_node_response_dict_prev(state: LanggraphState):
+    def regen_llm_node_response_json_prev(state: LanggraphState):
         """
         state 설정
         
@@ -24,18 +24,18 @@ class OldkoreanTranslator14CRules(BaseRules):
 
         # 예외처리, 변환할 수 없는 경우 state 그대로 리턴
         updated_state = {**state}
-        if state.get("llm_node_response_dict_prev") == None:
+        if state.get("llm_node_response_json_prev") == None:
             return updated_state
         
-        if len(state.get("llm_node_response_dict_prev")) == 0:
+        if len(state.get("llm_node_response_json_prev")) == 0:
             return updated_state
         
-        if state.get("llm_node_response_dict_prev").get("translations") == None:
+        if state.get("llm_node_response_json_prev").get("translations") == None:
             return updated_state
 
         # 형식 변경
         llm_node_response_text_prev_new = ""
-        translations = state.get("llm_node_response_dict_prev").get("translations", [])
+        translations = state.get("llm_node_response_json_prev").get("translations", [])
         llm_node_response_text_prev_new = "\n\n".join(translations)
 
         # 상태 갱신 

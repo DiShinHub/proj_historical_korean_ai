@@ -198,7 +198,7 @@ class ChatService:
             raise InternalServerException("메시지 생성 실패")
 
         # task_worker에게 데이터 전송
-        service_cd = "LBS_001"
+        service_cd = "TSK_001"
         task_id = str(uuid.uuid4())
         input_message = f"<!rule^.^member_seq={user_details.seq}!>{content}"
         task = {

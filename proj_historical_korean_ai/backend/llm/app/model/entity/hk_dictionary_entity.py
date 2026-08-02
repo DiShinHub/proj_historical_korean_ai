@@ -15,3 +15,4 @@ class HKDictionaryEntity(Base):
     mod_dt = Column(TIMESTAMP(timezone=True))
     mod_member_seq = Column(Integer, nullable=False)
     delete_yn = Column(String(1), nullable=False, default="N")
+    confirmed_yn = Column(String(1), nullable=True, default="N")

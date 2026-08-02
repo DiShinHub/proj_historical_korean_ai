@@ -14,7 +14,17 @@ from app.model.vo.result_vo import ResultVo
 from app.exception.devlab_exception import DevlabException
 from app.exception.internal_server_exception import InternalServerException
 from app.decoration.transactional import Transactional
+
+from app.config.redis_config.redis_config_repository import redis_config_repository
+
 from app.tool.log_tool import LogTool
+
+import datetime
+import math
+from typing import Dict, Any
+import uuid
+import json
+
 
 
 class HkDictionaryService:
@@ -23,6 +33,7 @@ class HkDictionaryService:
 
     def __init__(self):
         self.__hk_dictionary_dao = HkDictionaryDao(get_scoped_session=get_scoped_session)
+        self.get_redis_connection = redis_config_repository.get_redis_connection
 
     @Transactional()
     async def post_hk_dictionary(
@@ -56,7 +67,8 @@ class HkDictionaryService:
                     historical_period_start_dt=start_dt,
                     historical_period_end_dt=end_dt,
                     reg_member_seq=user_details.seq,
-                    mod_member_seq=user_details.seq
+                    mod_member_seq=user_details.seq,
+                    confirmed_yn="Y"
                 )
             )
 
@@ -175,7 +187,8 @@ class HkDictionaryService:
             "modern_korean",
             "historical_korean",
             "historical_period_start_dt",
-            "historical_period_end_dt"
+            "historical_period_end_dt",
+            "confirmed_yn"
         }
         update_data = {
             k: v for k, v in request_dto.items()
@@ -228,3 +241,39 @@ class HkDictionaryService:
             raise InternalServerException("삭제 실패")
 
         return ResultVo(success=True, data={})
+
+    @Transactional()
+    async def dump_raw_hk_dictionary(
+        self,
+        request_dto: Dict[str, Any],
+        user_details: UserDetailsDto = Depends(context_repository.get_user_details)
+    ) -> ResultVo:
+
+        raw_text = request_dto.get("raw_text")
+        if not raw_text:
+            raise DevlabException("raw_text는 필수 항목입니다.")
+
+        # task_worker에게 데이터 전송
+        service_cd = "TSK_002"
+        task_id = str(uuid.uuid4())
+        input_message = f"<!rule^.^member_seq={user_details.seq}!>{raw_text}"
+        task = {
+            "task_id": task_id,
+            "task_status": "wait",
+            "retry_cnt" : 0,
+            "params": {
+                "input_message" : input_message,
+            },
+        }
+        task = json.dumps(task)
+        
+        try : 
+            self.get_redis_connection().lpush(service_cd, task)
+
+        except Exception as e :
+            self.__logger.error(f"ChatService.post_chat_message error, service_cd : {service_cd}, task : {task}, error : {str(e)}")
+            raise InternalServerException("관리자에게 문의하세요.")
+
+        return ResultVo(
+            success=True,
+        )
