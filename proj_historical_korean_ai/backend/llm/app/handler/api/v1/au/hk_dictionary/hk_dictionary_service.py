@@ -106,6 +106,7 @@ class HkDictionaryService:
                 "reg_member_seq": dictionary_item.reg_member_seq,
                 "mod_dt": dictionary_item.mod_dt,
                 "mod_member_seq": dictionary_item.mod_member_seq,
+                "confirmed_yn": dictionary_item.confirmed_yn,
             }
         )
 
@@ -164,6 +165,8 @@ class HkDictionaryService:
                         "historical_period_start_dt": item.historical_period_start_dt,
                         "historical_period_end_dt": item.historical_period_end_dt,
                         "reg_dt": item.reg_dt,
+                        "mod_dt": item.mod_dt,
+                        "confirmed_yn": item.confirmed_yn,
                     }
                     for item in data_list
                 ]
@@ -286,3 +289,30 @@ class HkDictionaryService:
         return ResultVo(
             success=True,
         )
+
+        
+    @Transactional()
+    async def confirms_hk_dictionary(
+        self,
+        request_dto: Dict[str, Any],
+        user_details: UserDetailsDto = Depends(context_repository.get_user_details)
+    ) -> ResultVo:
+
+        seqs = request_dto.get("seqs", None)
+        confirmed_yn = request_dto.get("confirmed_yn", "Y")
+
+        update_data = {}
+        update_data["confirmed_yn"] = confirmed_yn
+        update_data["mod_member_seq"] = user_details.seq
+
+        try:
+            await self.__hk_dictionary_dao.update_hk_dictionary(
+                seqs=seqs,
+                **update_data
+            )
+            
+        except Exception as e:
+            self.__logger.error(f"error : {str(e)}")
+            raise InternalServerException("수정 실패")
+
+        return ResultVo(success=True, data={})

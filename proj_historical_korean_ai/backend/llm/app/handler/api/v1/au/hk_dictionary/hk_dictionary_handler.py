@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Body, Query
+from pydantic import BaseModel
 from typing import Dict, Any
 
 from app.config.authentication_config.jwt_authentication_provider import UserDetailsDto
@@ -21,7 +22,7 @@ async def post_hk_dictionary(
     return await service.post_hk_dictionary(request_dto, user_details)
 
 
-@router.get("/{seq}")
+@router.get("/hk_dictionary-seq/{seq}")
 async def get_hk_dictionary(
     seq: int
 ) -> ResultVo:
@@ -52,7 +53,7 @@ async def get_hk_dictionary_list(
     )
 
 
-@router.put("/{seq}")
+@router.put("/hk_dictionary-seq/{seq}")
 async def put_hk_dictionary(
     seq: int,
     request_dto: Dict[str, Any] = Body(...),
@@ -61,8 +62,7 @@ async def put_hk_dictionary(
     """고어 사전 항목 수정"""
     return await service.put_hk_dictionary(seq, request_dto, user_details)
 
-
-@router.delete("/{seq}")
+@router.delete("/hk_dictionary-seq/{seq}")
 async def delete_hk_dictionary(
     seq: int,
     user_details: UserDetailsDto = Depends(context_repository.get_user_details)
@@ -77,3 +77,11 @@ async def dump_raw_hk_dictionary(
 ) -> ResultVo:
     """고어 사전 항목 등록"""
     return await service.dump_raw_hk_dictionary(request_dto, user_details)
+
+@router.put("/confirms")
+async def confirms_hk_dictionary(
+    request_dto: Dict[str, Any] = Body(...),
+    user_details: UserDetailsDto = Depends(context_repository.get_user_details)
+) -> ResultVo:
+    """고어 사전 항목 수정"""
+    return await service.confirms_hk_dictionary(request_dto, user_details)

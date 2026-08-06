@@ -113,6 +113,21 @@ export class RealChatSocket extends BaseChatSocket {
 
     if (this.ws) {
 
+      //
+      // 핸들러를 먼저 떼어낸 뒤 닫는다.
+      //
+      // close() 는 비동기라 onclose(handleClose)가 나중에 발화하는데,
+      // 그 사이 다른 화면이 connect() 를 호출하면(예: 채팅 → 사전 페이지 이동)
+      // manualClose 가 이미 false 로 돌아가 있어 handleClose 가
+      // "예기치 않은 끊김"으로 오인 → this.ws 를 null 로 덮고 재연결을
+      // 예약해 버린다(새로 연결한 소켓이 유령이 된다).
+      // 수동 종료는 어차피 이후 이벤트가 필요 없으므로 여기서 끊어 둔다.
+      //
+      this.ws.onopen = null;
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+      this.ws.onmessage = null;
+
       this.ws.close();
 
       this.ws = null;

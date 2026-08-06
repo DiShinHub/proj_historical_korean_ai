@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Link from "next/link";
 import { useTheme } from "@/themes/ThemeContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
@@ -84,6 +85,15 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         >
           ＋
         </button>
+        {/* 고어 사전 관리 화면 이동 */}
+        <Link
+          className="icon-btn"
+          href="/dictionary"
+          aria-label="고어 사전 관리"
+          title="고어 사전 관리"
+        >
+          📖
+        </Link>
       </aside>
     );
   }
@@ -115,6 +125,15 @@ export default function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       <button className="new-chat" onClick={handleNewChat}>
         ＋ 새 대화
       </button>
+
+      {/* 고어 사전 관리 화면 이동 (기존 .session 스타일 재사용) */}
+      <Link
+        className="session"
+        href="/dictionary"
+        style={{ marginTop: 10, textDecoration: "none", color: "inherit" }}
+      >
+        <span className="session-title">📖 고어 사전 관리</span>
+      </Link>
 
       <div className="session-group">
         <h4>대화</h4>

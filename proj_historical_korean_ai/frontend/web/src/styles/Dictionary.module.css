@@ -1,0 +1,960 @@
+/*
+ * 고어 사전 관리 화면 전용 스타일.
+ *
+ * CSS Module 로 격리해 기존 globals.css 에 영향을 주지 않는다.
+ * 색상은 globals.css 의 CSS 변수(:root / body.dark)를 그대로 재사용하므로
+ * 기존 다크 모드 토글이 이 화면에도 그대로 적용된다.
+ */
+
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-family: Pretendard, "Noto Sans KR", sans-serif;
+}
+
+/* ============ TOP BAR ============ */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 58px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-sidebar);
+}
+
+.brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+.brandTitle {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.brandSub {
+    font-size: 12px;
+    color: var(--text-sub);
+    white-space: nowrap;
+}
+
+.topbarSpacer {
+    flex: 1;
+}
+
+.topbarActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.roomBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-sub);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    white-space: nowrap;
+}
+
+.roomDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-sub);
+    flex-shrink: 0;
+}
+
+.roomDot[data-status="open"] {
+    background: var(--ok);
+}
+
+.roomDot[data-status="error"],
+.roomDot[data-status="closed"] {
+    background: var(--danger);
+}
+
+.roomDot[data-status="connecting"],
+.roomDot[data-status="reconnecting"] {
+    background: #e0a63f;
+    animation: dictPulse 1s infinite;
+}
+
+@keyframes dictPulse {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* ============ BODY LAYOUT ============ */
+
+.body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 32px;
+}
+
+/* ============ BUTTONS ============ */
+
+.btn {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+.btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btnPrimary {
+    border-color: transparent;
+    background: var(--accent);
+    color: #fff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.btnDanger {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: transparent;
+}
+
+.btnDanger:hover:not(:disabled) {
+    background: var(--danger);
+    color: #fff;
+}
+
+.btnGhost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-sub);
+}
+
+.btnGhost:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.btnSmall {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+.iconBtn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: var(--bg-hover);
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.15s;
+}
+
+.iconBtn:hover {
+    filter: brightness(0.95);
+}
+
+/* ============ PANEL / CARD ============ */
+
+.panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.panelHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-sidebar);
+}
+
+.panelTitle {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.panelHint {
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.panelBody {
+    padding: 16px;
+}
+
+.panelSpacer {
+    flex: 1;
+}
+
+/* ============ FILTER GRID ============ */
+
+.filterGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.fieldWide {
+    grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+    .fieldWide {
+        grid-column: span 1;
+    }
+}
+
+.fieldLabelRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.fieldLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.fieldHint {
+    font-size: 11px;
+    color: var(--text-sub);
+}
+
+.input,
+.select,
+.textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg-main);
+    color: var(--text-main);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    border-color: var(--accent);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 180px;
+    line-height: 1.7;
+}
+
+.inputError {
+    border-color: var(--danger);
+}
+
+/* ============ DATE RANGE BAR ============ */
+
+.rangeBar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rangeRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rangeSep {
+    color: var(--text-sub);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.rangeTime {
+    font-size: 11px;
+    color: var(--text-sub);
+    white-space: nowrap;
+}
+
+.presetRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.presetChip {
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-sub);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.15s;
+    font-family: inherit;
+}
+
+.presetChip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.presetChipActive {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+}
+
+/* ============ TOOLBAR / ACTION ROW ============ */
+
+.actionRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.badgeServer,
+.badgeClient,
+.badgeOff {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 7px;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.badgeServer {
+    background: rgba(79, 124, 247, 0.14);
+    color: var(--accent);
+}
+
+.badgeClient {
+    background: rgba(224, 166, 63, 0.18);
+    color: #b07a1c;
+}
+
+.badgeOff {
+    background: var(--bg-hover);
+    color: var(--text-sub);
+}
+
+:global(body.dark) .badgeClient {
+    color: #e0a63f;
+}
+
+/* ============ TABLE ============ */
+
+.tableWrap {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: auto;
+    background: var(--bg-card);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 900px;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-sub);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.thButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    padding: 11px 14px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.thButton:hover {
+    color: var(--text-main);
+}
+
+.thStatic {
+    padding: 11px 14px;
+}
+
+.sortMark {
+    font-size: 10px;
+    opacity: 0.45;
+}
+
+.sortMarkActive {
+    opacity: 1;
+    color: var(--accent);
+}
+
+.table tbody td {
+    border-bottom: 1px solid var(--border);
+    padding: 11px 14px;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cellNum {
+    color: var(--text-sub);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.cellWord {
+    font-weight: 600;
+}
+
+.cellHistorical {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.cellPeriod,
+.cellDt {
+    color: var(--text-sub);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.rowActions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.emptyRow {
+    padding: 46px 16px;
+    text-align: center;
+    color: var(--text-sub);
+}
+
+/* ============ PAGINATION ============ */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.pageInfo {
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.pageBtns {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.pageBtn {
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 8px;
+    font-family: inherit;
+}
+
+.pageBtn:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+.pageBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pageBtnActive {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.pageBtnActive:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+/* ============ NOTICES ============ */
+
+.notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.noticeInfo {
+    background: rgba(79, 124, 247, 0.1);
+    color: var(--text-main);
+    border-left: 3px solid var(--accent);
+}
+
+.noticeWarn {
+    background: rgba(224, 166, 63, 0.14);
+    color: var(--text-main);
+    border-left: 3px solid #e0a63f;
+}
+
+.noticeError {
+    background: rgba(214, 69, 69, 0.12);
+    color: var(--text-main);
+    border-left: 3px solid var(--danger);
+}
+
+/* ============ TASK FEED (RIGHT PANEL) ============ */
+
+.feed {
+    width: 320px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.feedHead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.feedTitle {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.feedList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedItem {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.feedItemSuccess {
+    border-left: 3px solid var(--ok);
+}
+
+.feedItemFail {
+    border-left: 3px solid var(--danger);
+}
+
+.feedItemInfo {
+    border-left: 3px solid var(--accent);
+}
+
+.feedItemHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.feedLevel {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.feedTime {
+    font-size: 11px;
+    color: var(--text-sub);
+    font-variant-numeric: tabular-nums;
+}
+
+.feedCount {
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: var(--text-sub);
+}
+
+.feedEmpty {
+    color: var(--text-sub);
+    font-size: 12px;
+    padding: 18px 4px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+.feedPending {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin: 0 12px 12px;
+    border-radius: 10px;
+    background: var(--bg-hover);
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.spinner {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--text-sub);
+    border-top-color: transparent;
+    animation: dictSpin 0.8s linear infinite;
+}
+
+@keyframes dictSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 1100px) {
+    .feed {
+        display: none;
+    }
+}
+
+/* ============ MODAL ============ */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 50;
+}
+
+.modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.25);
+}
+
+.modalWide {
+    max-width: 760px;
+}
+
+.modalHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modalTitle {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.modalBody {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modalFoot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+
+@media (max-width: 560px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formFull {
+    grid-column: 1 / -1;
+}
+
+.required {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+.errorText {
+    color: var(--danger);
+    font-size: 11.5px;
+}
+
+/* ============ DETAIL LIST ============ */
+
+.detailList {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px 14px;
+    font-size: 13px;
+}
+
+.detailKey {
+    color: var(--text-sub);
+    font-size: 12px;
+    padding-top: 1px;
+}
+
+.detailVal {
+    word-break: break-word;
+}
+
+/* ============ FILE DROPZONE ============ */
+
+.dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: 0.15s;
+    background: var(--bg-main);
+}
+
+.dropzone:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.dropzoneActive {
+    border-color: var(--accent);
+    background: rgba(79, 124, 247, 0.08);
+    color: var(--accent);
+}
+
+.dropIcon {
+    font-size: 30px;
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
+
+.dropHint {
+    font-size: 11.5px;
+    margin-top: 6px;
+    opacity: 0.85;
+}
+
+.fileList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fileItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    background: var(--bg-main);
+}
+
+.fileName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileSize {
+    color: var(--text-sub);
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+.fileRemove {
+    border: none;
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.charCount {
+    font-size: 11.5px;
+    color: var(--text-sub);
+    text-align: right;
+}
+
+.codeBlock {
+    background: var(--bg-hover);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 11.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text-sub);
+}
+
+/* ============ FULLSCREEN STATE ============ */
+
+.fullscreen {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    color: var(--text-sub);
+    padding: 24px;
+}
+
+.fullscreenIcon {
+    font-size: 42px;
+    opacity: 0.5;
+}
+
+.fullscreenTitle {
+    color: var(--text-main);
+    font-size: 19px;
+}

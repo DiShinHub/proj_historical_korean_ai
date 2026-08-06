@@ -167,9 +167,14 @@ class HkDictionaryDao:
 
     async def update_hk_dictionary(
         self,
-        seq: int,
+        seq: int=None,
+        seqs: list[int]=None,
         **kwargs
-    ):
+    ):  
+
+        if seq == None and seqs == None:
+            return 
+        
         update_values = {
             key: value
             for key, value in kwargs.items()
@@ -178,16 +183,30 @@ class HkDictionaryDao:
 
         update_values["mod_dt"] = func.now()
 
-        stmt = (
-            update(HKDictionaryEntity)
-            .where(
-                and_(
-                    HKDictionaryEntity.seq == seq,
-                    HKDictionaryEntity.delete_yn == "N"
+        stmt = None
+        if seq:
+            stmt = (
+                update(HKDictionaryEntity)
+                .where(
+                    and_(
+                        HKDictionaryEntity.seq == seq,
+                        HKDictionaryEntity.delete_yn == "N"
+                    )
                 )
+                .values(**update_values)
             )
-            .values(**update_values)
-        )
+
+        if seqs:
+            stmt = (
+                update(HKDictionaryEntity)
+                .where(
+                    and_(
+                        HKDictionaryEntity.seq.in_(seqs),  # IN 절 적용
+                        HKDictionaryEntity.delete_yn == "N"
+                    )
+                )
+                .values(**update_values)
+            )
 
         await SqlSessionHelper.execute(
             session=self.__get_scoped_session()(),
