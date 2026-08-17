@@ -25,7 +25,10 @@ export type MessageRole = "USER" | "ASSISTANT" | (string & {});
 export interface ChatMessageDto {
   seq: number;
   role: MessageRole;
-  content: string;
+  content: string[];
+  ipa?: string[] | null;
+  audio_path?: string[] | null;
+  audio_expire_yn?: string | null;
   reg_dt: string;
 }
 

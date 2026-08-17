@@ -41,11 +41,7 @@ class ChatDao:
             session=self.__get_scoped_session()(),
             stmt=stmt
         )
-
-        return [
-            ChatSessionEntity(**row._mapping)
-            for row in result.fetchall()
-        ]
+        return result.fetchall()
 
     async def get_chat_session(
         self,
@@ -131,16 +127,17 @@ class ChatDao:
             session=self.__get_scoped_session()(),
             stmt=stmt
         )
-
+        
     async def add_chat_message(self, entity: ChatMessageEntity):
-
         stmt = (
             insert(ChatMessageEntity)
             .values(
                 chat_session_seq=entity.chat_session_seq,
                 model_name=entity.model_name,
                 role=entity.role,
-                content=entity.content,
+                content=entity.content,        # list[str] (text[])
+                ipa=entity.ipa,                # list[str] (text[])
+                audio_path=entity.audio_path,  # list[str] (text[])
                 response_time_ms=entity.response_time_ms,
                 feedback_type=entity.feedback_type,
                 feedback_comment=entity.feedback_comment,

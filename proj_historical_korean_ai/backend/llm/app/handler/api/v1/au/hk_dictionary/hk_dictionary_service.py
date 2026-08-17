@@ -114,8 +114,10 @@ class HkDictionaryService:
     async def get_hk_dictionary_list(
         self,
         modern_korean: str | None = None,
+        historical_korean: str | None = None,
         historical_period_start_dt: str | None = None,
         historical_period_end_dt: str | None = None,
+        confirmed_yn: str | None = None,
         order_by: str = "seq",
         order_direction: str = "desc",
         page: int = 1,
@@ -134,18 +136,22 @@ class HkDictionaryService:
         try:
             total_cnt = await self.__hk_dictionary_dao.get_hk_dictionary_count(
                 modern_korean=modern_korean,
+                historical_korean=historical_korean,
                 start_dt=start_dt,
-                end_dt=end_dt
+                end_dt=end_dt,
+                confirmed_yn=confirmed_yn
             )
 
             data_list = await self.__hk_dictionary_dao.get_hk_dictionary_list(
                 modern_korean=modern_korean,
+                historical_korean=historical_korean,
                 start_dt=start_dt,
                 end_dt=end_dt,
                 order_by=order_by,
                 order_direction=order_direction,
                 page=page,
-                page_size=page_size
+                page_size=page_size,
+                confirmed_yn=confirmed_yn
             )
         except Exception as e:
             self.__logger.error(f"error : {str(e)}")

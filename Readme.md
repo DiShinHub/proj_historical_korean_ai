@@ -57,5 +57,23 @@ stop.bat
 
 ## minio 셋업
 <pre>
-작성 중
+# 1. Set alias
+mc alias set myminio http://hk-ai-minio-compose:9000 minio minioadmin
+mc alias set local http://localhost:9000 minio minioadmin
+
+# 2. Create the service account / access key
+mc admin user svcacct add \
+  --access-key "" \
+  --secret-key "" \
+  myminio minio
+
+# 3. set download
+mc anonymous set download myminio/hkai-bucket
+mc anonymous set download local/hkai-bucket
+
+# 4. set cors
+mc admin config set myminio api cors_allow_origin="*"
+
+# 5. restart to set
+mc admin service restart myminio
 </pre>

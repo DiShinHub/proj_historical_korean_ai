@@ -72,8 +72,10 @@ class HkDictionaryDao:
     async def get_hk_dictionary_list(
             self,
             modern_korean: str | None = None,
+            historical_korean: str | None = None,
             start_dt: datetime.datetime | None = None,
             end_dt: datetime.datetime | None = None,
+            confirmed_yn: str | None = None,
             order_by: str = "seq",
             order_direction: str = "desc",
             page: int = 1,
@@ -89,6 +91,10 @@ class HkDictionaryDao:
         if modern_korean:
             conditions.append(HKDictionaryEntity.modern_korean.like(f"%{modern_korean}%"))
 
+        # 고어 검색 (LIKE)
+        if historical_korean:
+            conditions.append(HKDictionaryEntity.historical_korean.like(f"%{historical_korean}%"))
+
         # 시기 검색 (Between 조건)
         # 시작/종료 일자가 모두 넘어온 경우 between 적용
         if start_dt and end_dt:
@@ -103,6 +109,10 @@ class HkDictionaryDao:
             
         elif end_dt:
             conditions.append(HKDictionaryEntity.historical_period_end_dt <= end_dt)
+
+        # 검수 여부 검색
+        if confirmed_yn:
+            conditions.append(HKDictionaryEntity.confirmed_yn == confirmed_yn)
 
         # 2. 동적 정렬 컬럼 및 방향 설정
         order_column = getattr(HKDictionaryEntity, order_by, HKDictionaryEntity.seq)
@@ -129,8 +139,10 @@ class HkDictionaryDao:
     async def get_hk_dictionary_count(
             self,
             modern_korean: str | None = None,
+            historical_korean: str | None = None,
             start_dt: datetime.datetime | None = None,
             end_dt: datetime.datetime | None = None,
+            confirmed_yn: str | None = None,
         ) -> int:
 
         # 1. 목록 조회와 동일한 검색 조건 구성
@@ -138,6 +150,9 @@ class HkDictionaryDao:
 
         if modern_korean:
             conditions.append(HKDictionaryEntity.modern_korean.like(f"%{modern_korean}%"))
+
+        if historical_korean:
+            conditions.append(HKDictionaryEntity.historical_korean.like(f"%{historical_korean}%"))
 
         if start_dt and end_dt:
             conditions.append(
@@ -152,6 +167,9 @@ class HkDictionaryDao:
 
         elif end_dt:
             conditions.append(HKDictionaryEntity.historical_period_end_dt <= end_dt)
+
+        if confirmed_yn:
+            conditions.append(HKDictionaryEntity.confirmed_yn == confirmed_yn)
 
         # 2. COUNT 쿼리 생성
         stmt = (

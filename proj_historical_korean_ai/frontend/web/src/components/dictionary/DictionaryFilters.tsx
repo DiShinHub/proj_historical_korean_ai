@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import styles from "@/styles/Dictionary.module.css";
 import DateRangeBar from "./DateRangeBar";
 import FilterSupportBadge from "./FilterSupportBadge";
-import { getFieldMeta, SORTABLE_FIELDS } from "@/lib/dictionary/fields";
+import {
+  SEARCH_CONDITIONS,
+  SORTABLE_FIELDS,
+  getSearchConditionMeta,
+} from "@/lib/dictionary/fields";
 import type {
   DictionaryFilterState,
   DictionarySortState,
 } from "@/hooks/useDictionaryList";
-import type { DictionaryFieldKey } from "@/lib/dictionary/fields";
+import type {
+  DictionaryFieldKey,
+  SearchConditionKey,
+} from "@/lib/dictionary/fields";
 
 interface DictionaryFiltersProps {
   filters: DictionaryFilterState;
@@ -21,9 +28,9 @@ interface DictionaryFiltersProps {
 /**
  * 조회 필터 패널.
  *
- * delete_yn 을 제외한 전 Entity Key 를 노출하되,
- * 각 항목이 서버 검색인지 / 페이지 내 필터인지 / 필터 불가인지
- * 배지로 명확히 구분해 보여준다(fields.ts 메타데이터 기준).
+ * 검색 조건은 4개(현대어 / 고어 / 시대 기간 / 검수 여부) 중 여러 개를 동시에
+ * 체크할 수 있다(다중 선택, AND 결합). 체크된 조건마다 입력 UI가 함께 표시된다.
+ * 정렬은 별도로, 7개 필드 중에서 고른다(fields.ts 의 SORTABLE_FIELDS 기준).
  */
 export default function DictionaryFilters({
   filters,
@@ -44,12 +51,21 @@ export default function DictionaryFilters({
   const patch = (part: Partial<DictionaryFilterState>) =>
     setDraft((prev) => ({ ...prev, ...part }));
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onApply(draft);
+  const toggleCondition = (key: SearchConditionKey) => {
+    setDraft((prev) => {
+      const active = prev.conditions.includes(key);
+      const conditions = active
+        ? prev.conditions.filter((k) => k !== key)
+        : [...prev.conditions, key];
+      return { ...prev, conditions };
+    });
   };
 
-  const periodMeta = getFieldMeta("historical_period_start_dt");
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("[dictionary] filter submit", draft);
+    onApply(draft);
+  };
 
   return (
     <form className={styles.panel} onSubmit={submit}>
@@ -58,111 +74,98 @@ export default function DictionaryFilters({
       </div>
 
       <div className={styles.panelBody}>
-        <div className={styles.filterGrid}>
-          {/* seq — 서버 미지원(페이지 내) */}
-          <div className={styles.field}>
-            <div className={styles.fieldLabelRow}>
-              <label className={styles.fieldLabel} htmlFor="f-seq">
-                {getFieldMeta("seq").label}
-              </label>
-              <FilterSupportBadge support="client" />
-            </div>
-            <input
-              id="f-seq"
-              className={styles.input}
-              value={draft.seq}
-              inputMode="numeric"
-              placeholder="예: 12"
-              onChange={(e) =>
-                patch({ seq: e.target.value.replace(/[^0-9]/g, "") })
-              }
-            />
+        {/* ── 검색 조건(다중 선택) ─────────────────────────────────── */}
+        <div className={styles.searchBar}>
+          {SEARCH_CONDITIONS.map((cond) => (
+            <label key={cond.key} className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={draft.conditions.includes(cond.key)}
+                onChange={() => toggleCondition(cond.key)}
+              />
+              {cond.label}
+            </label>
+          ))}
+
+          <span className={styles.panelSpacer} />
+
+          <button
+            type="submit"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            disabled={loading}
+          >
+            {loading ? "조회 중…" : "조회"}
+          </button>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={onReset}
+            disabled={loading}
+          >
+            초기화
+          </button>
+        </div>
+
+        {/* ── 체크된 조건마다 입력 UI를 함께 노출한다 ───────────────── */}
+        {draft.conditions.length > 0 ? (
+          <div className={styles.filterGrid} style={{ marginTop: 12 }}>
+            {draft.conditions.includes("modern_korean") ? (
+              <ConditionField conditionKey="modern_korean">
+                <input
+                  className={styles.input}
+                  value={draft.modern_korean}
+                  placeholder="현대어 부분 일치 검색 (예: 사랑)"
+                  onChange={(e) => patch({ modern_korean: e.target.value })}
+                />
+              </ConditionField>
+            ) : null}
+
+            {draft.conditions.includes("historical_korean") ? (
+              <ConditionField conditionKey="historical_korean">
+                <input
+                  className={styles.input}
+                  value={draft.historical_korean}
+                  placeholder="고어 부분 일치 검색 (예: 괴다)"
+                  onChange={(e) => patch({ historical_korean: e.target.value })}
+                />
+              </ConditionField>
+            ) : null}
+
+            {draft.conditions.includes("period") ? (
+              <ConditionField conditionKey="period" wide>
+                <DateRangeBar
+                  start={draft.periodStart}
+                  end={draft.periodEnd}
+                  onChange={(periodStart, periodEnd) =>
+                    patch({ periodStart, periodEnd })
+                  }
+                />
+              </ConditionField>
+            ) : null}
+
+            {draft.conditions.includes("confirmed_yn") ? (
+              <ConditionField conditionKey="confirmed_yn">
+                <select
+                  className={styles.select}
+                  value={draft.confirmed_yn}
+                  onChange={(e) => patch({ confirmed_yn: e.target.value })}
+                >
+                  <option value="">전체</option>
+                  <option value="Y">검수 완료 (Y)</option>
+                  <option value="N">미검수 (N)</option>
+                </select>
+              </ConditionField>
+            ) : null}
           </div>
+        ) : null}
 
-          {/* modern_korean — 서버 LIKE */}
-          <div className={styles.field}>
-            <div className={styles.fieldLabelRow}>
-              <label className={styles.fieldLabel} htmlFor="f-modern">
-                {getFieldMeta("modern_korean").label}
-              </label>
-              <FilterSupportBadge support="server" />
-            </div>
-            <input
-              id="f-modern"
-              className={styles.input}
-              value={draft.modern_korean}
-              placeholder="부분 일치 검색 (예: 사랑)"
-              onChange={(e) => patch({ modern_korean: e.target.value })}
-            />
-          </div>
-
-          {/* historical_korean — 서버 미지원(페이지 내) */}
-          <div className={styles.field}>
-            <div className={styles.fieldLabelRow}>
-              <label className={styles.fieldLabel} htmlFor="f-historical">
-                {getFieldMeta("historical_korean").label}
-              </label>
-              <FilterSupportBadge support="client" />
-            </div>
-            <input
-              id="f-historical"
-              className={styles.input}
-              value={draft.historical_korean}
-              placeholder="부분 일치 (예: 괴다)"
-              onChange={(e) => patch({ historical_korean: e.target.value })}
-            />
-          </div>
-
-          {/* historical_period_start_dt ~ historical_period_end_dt — 기간 바 */}
-          <div className={`${styles.field} ${styles.fieldWide}`}>
-            <div className={styles.fieldLabelRow}>
-              <span className={styles.fieldLabel}>시대 기간</span>
-              <FilterSupportBadge support="server" />
-              <span className={styles.fieldHint}>
-                historical_period_start_dt ≥ 시작일 · historical_period_end_dt ≤
-                종료일
-              </span>
-            </div>
-            <DateRangeBar
-              start={draft.periodStart}
-              end={draft.periodEnd}
-              onChange={(periodStart, periodEnd) =>
-                patch({ periodStart, periodEnd })
-              }
-            />
-            <span className={styles.fieldHint}>{periodMeta.hint}</span>
-          </div>
-
-          {/* reg_dt — 서버 미지원(페이지 내) */}
-          <div className={`${styles.field} ${styles.fieldWide}`}>
-            <div className={styles.fieldLabelRow}>
-              <span className={styles.fieldLabel}>
-                {getFieldMeta("reg_dt").label}
-              </span>
-              <FilterSupportBadge support="client" />
-            </div>
-            <DateRangeBar
-              start={draft.regDtFrom}
-              end={draft.regDtTo}
-              showPresets={false}
-              showTimeHint={false}
-              onChange={(regDtFrom, regDtTo) => patch({ regDtFrom, regDtTo })}
-            />
-          </div>
-
-          {/* 필터 불가 필드들 — 정렬만 가능하다는 것을 명시적으로 노출 */}
-          <DisabledFilterField fieldKey="reg_member_seq" placeholder="회원 번호" />
-          <DisabledFilterField fieldKey="mod_member_seq" placeholder="회원 번호" />
-          <DisabledFilterField fieldKey="mod_dt" placeholder="YYYY-MM-DD" />
-          <DisabledFilterField fieldKey="confirmed_yn" placeholder="Y / N" />
-
-          {/* 정렬 — 전 필드 서버 지원 */}
+        {/* ── 정렬 기준 / 방향 ──────────────────────────────────────── */}
+        <div className={styles.filterGrid} style={{ marginTop: 16 }}>
           <div className={styles.field}>
             <div className={styles.fieldLabelRow}>
               <label className={styles.fieldLabel} htmlFor="f-order-by">
                 정렬 기준
               </label>
-              <FilterSupportBadge support="server" />
             </div>
             <select
               id="f-order-by"
@@ -205,53 +208,33 @@ export default function DictionaryFilters({
             </select>
           </div>
         </div>
-
-        <div className={styles.actionRow} style={{ marginTop: 16, marginBottom: 0 }}>
-          <button
-            type="submit"
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            disabled={loading}
-          >
-            {loading ? "조회 중…" : "조회"}
-          </button>
-          <button
-            type="button"
-            className={styles.btn}
-            onClick={onReset}
-            disabled={loading}
-          >
-            초기화
-          </button>
-        </div>
       </div>
     </form>
   );
 }
 
-/** 백엔드 미지원으로 입력이 막힌 필터 필드. */
-function DisabledFilterField({
-  fieldKey,
-  placeholder,
+/** 체크된 검색 조건 1개의 입력 필드 + 서버/클라이언트 필터 배지. */
+function ConditionField({
+  conditionKey,
+  wide,
+  children,
 }: {
-  fieldKey: DictionaryFieldKey;
-  placeholder: string;
+  conditionKey: SearchConditionKey;
+  wide?: boolean;
+  children: React.ReactNode;
 }) {
-  const meta = getFieldMeta(fieldKey);
+  const meta = getSearchConditionMeta(conditionKey);
 
   return (
-    <div className={styles.field}>
+    <div className={`${styles.field} ${wide ? styles.fieldWide : ""}`}>
       <div className={styles.fieldLabelRow}>
         <span className={styles.fieldLabel}>{meta.label}</span>
-        <FilterSupportBadge support="unavailable" />
+        <FilterSupportBadge support={meta.support} />
       </div>
-      <input
-        className={styles.input}
-        value=""
-        placeholder={placeholder}
-        disabled
-        readOnly
-      />
-      <span className={styles.fieldHint}>{meta.hint}</span>
+      {children}
+      {meta.hint ? (
+        <span className={styles.fieldHint}>{meta.hint}</span>
+      ) : null}
     </div>
   );
 }

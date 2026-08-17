@@ -5,6 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import * as messageApi from "@/lib/api/messages";
 import { uuid } from "@/lib/uuid";
+import { buildCandidates, TranslationCandidate } from "@/lib/chat/audio";
 
 export type MessageStatus =
   | "sending" // user msg being persisted
@@ -20,6 +21,10 @@ export interface ChatMessage {
   seq?: number; // server seq once persisted
   role: "USER" | "ASSISTANT";
   content: string;
+  // SYSTEM(ASSISTANT) 응답의 번역 후보별 텍스트/IPA/오디오 재생 정보(checkpoint: audio_path).
+  candidates?: TranslationCandidate[];
+  // content 와 audio_path 개수가 달라 바인딩 없이 순차 노출된 경우 true.
+  audioMismatch?: boolean;
   status: MessageStatus;
   regDt?: string;
   audioUrl?: string;
@@ -60,14 +65,27 @@ export const fetchMessages = createAsyncThunk(
     const rows = await messageApi.listMessages(sessionSeq);
     const messages: ChatMessage[] = rows.map((r) => {
       const isUser = r.role === "USER";
-      return {
+      const contentArr = Array.isArray(r.content) ? r.content : r.content ? [r.content] : [];
+      const message: ChatMessage = {
         id: `srv-${r.seq}`,
         seq: r.seq,
         role: isUser ? "USER" : "ASSISTANT",
-        content: r.content,
+        content: contentArr.join("\n\n"),
         status: isUser ? "sent" : "done",
         regDt: r.reg_dt,
       };
+      // SYSTEM 응답에만 번역 후보별 audio_path 를 바인딩한다(USER 는 audio 영역 없음).
+      if (!isUser) {
+        const { candidates, mismatch } = buildCandidates(
+          contentArr,
+          r.ipa,
+          r.audio_path,
+          r.audio_expire_yn === "Y"
+        );
+        message.candidates = candidates;
+        message.audioMismatch = mismatch;
+      }
+      return message;
     });
     console.log("[API] 대화 내역 로드", sessionSeq, `${messages.length}건`);
     return { sessionSeq, messages };
@@ -244,17 +262,22 @@ const messagesSlice = createSlice({
       action: PayloadAction<{
         sessionSeq: number;
         text: string;
+        candidates?: TranslationCandidate[];
+        audioMismatch?: boolean;
         audioUrl?: string;
         messageSeq?: number;
       }>
     ) {
-      const { sessionSeq, text, audioUrl, messageSeq } = action.payload;
+      const { sessionSeq, text, candidates, audioMismatch, audioUrl, messageSeq } =
+        action.payload;
       const id = state.pendingAssistant[sessionSeq];
       if (!id) return;
       const m = state.bySession[sessionSeq]?.find((x) => x.id === id);
       if (m) {
         m.content = text;
         m.status = "done";
+        if (candidates) m.candidates = candidates;
+        if (audioMismatch != null) m.audioMismatch = audioMismatch;
         if (audioUrl) m.audioUrl = audioUrl;
         if (messageSeq != null) m.seq = messageSeq;
       }

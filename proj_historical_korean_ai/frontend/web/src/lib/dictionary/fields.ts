@@ -1,21 +1,21 @@
 /**
  * hk_dictionary 엔티티 필드 메타데이터.
  *
- * 요구사항: delete_yn 을 제외한 모든 Entity Key 에 대해 필터링/정렬을 지원한다.
+ * 검색(조회) 조건은 정확히 4개만 제공한다: 현대어 / 고어 / 시대 기간 / 검수 여부.
+ * 정렬(sort) 조건은 정확히 7개만 제공한다: 번호 / 현대어 / 고어 / 시대 시작일 /
+ * 시대 종료일 / 등록일시 / 검수 여부.
  *
- * 현재 백엔드 실제 지원 범위(app/dao/hk_dictionary_dao.py 기준):
+ * 현재 백엔드 실제 지원 범위(app/handler/api/v1/au/hk_dictionary 기준):
  *  - 정렬  : `order_by` 가 getattr(Entity, order_by) 로 동적 처리되므로 전 컬럼 가능.
- *  - 필터  : modern_korean(LIKE) + historical_period_start/end_dt(범위) 만 가능.
+ *  - 필터  : modern_korean(LIKE) + historical_period_start/end_dt(범위) 만 쿼리 파라미터로 지원.
  *  - 목록 응답 필드 : seq / modern_korean / historical_korean /
- *                     historical_period_start_dt / historical_period_end_dt / reg_dt
+ *                     historical_period_start_dt / historical_period_end_dt /
+ *                     reg_dt / mod_dt / confirmed_yn
  *
- * 그래서 필터는 3단계로 구분한다.
- *  - "server"      : 서버 쿼리 파라미터로 전달된다(전체 데이터 기준 필터).
- *  - "client"      : 서버 미지원이지만 목록 응답에 값이 있어 현재 페이지 한정으로 거를 수 있다.
- *  - "unavailable" : 서버도 미지원이고 목록 응답에도 값이 없어 필터가 불가능하다.
- *
- * "client"/"unavailable" 을 없애려면 백엔드 확장이 필요하다.
- * → BACKEND_MODIFICATION_NOTES.md §1, §2 참고.
+ * 고어 / 검수 여부는 서버가 쿼리 파라미터로 받지 않으므로, 응답에 값은 있지만
+ * **현재 페이지에 한해서만** 클라이언트에서 거른다(fields.ts 의 `filter` 메타데이터 기준).
+ * 백엔드 계약을 바꾸지 않는 한 전체 데이터 기준 검색으로 확장할 수 없다
+ * (BACKEND_MODIFICATION_NOTES.md §1 참고).
  */
 
 export type DictionaryFieldKey =
@@ -25,9 +25,6 @@ export type DictionaryFieldKey =
   | "historical_period_start_dt"
   | "historical_period_end_dt"
   | "reg_dt"
-  | "reg_member_seq"
-  | "mod_dt"
-  | "mod_member_seq"
   | "confirmed_yn";
 
 export type FilterSupport = "server" | "client" | "unavailable";
@@ -46,14 +43,15 @@ export interface DictionaryFieldMeta {
   hint?: string;
 }
 
+/** 정렬 셀렉트 박스에 그대로 노출되는 7개 필드(요구사항 §12). */
 export const DICTIONARY_FIELDS: DictionaryFieldMeta[] = [
   {
     key: "seq",
-    label: "번호(seq)",
+    label: "번호",
     type: "number",
-    filter: "client",
+    filter: "unavailable",
     inList: true,
-    hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
+    hint: "정렬만 가능 · 검색 조건에서는 제외됨",
   },
   {
     key: "modern_korean",
@@ -67,7 +65,7 @@ export const DICTIONARY_FIELDS: DictionaryFieldMeta[] = [
     key: "historical_korean",
     label: "고어",
     type: "text",
-    filter: "client",
+    filter: "server",
     inList: true,
     hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
   },
@@ -91,41 +89,17 @@ export const DICTIONARY_FIELDS: DictionaryFieldMeta[] = [
     key: "reg_dt",
     label: "등록일시",
     type: "date-range",
-    filter: "client",
+    filter: "unavailable",
     inList: true,
-    hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
-  },
-  {
-    key: "reg_member_seq",
-    label: "등록자",
-    type: "number",
-    filter: "unavailable",
-    inList: false,
-    hint: "목록 응답에 없음 · 정렬만 가능",
-  },
-  {
-    key: "mod_dt",
-    label: "수정일시",
-    type: "date-range",
-    filter: "unavailable",
-    inList: false,
-    hint: "목록 응답에 없음 · 정렬만 가능",
-  },
-  {
-    key: "mod_member_seq",
-    label: "수정자",
-    type: "number",
-    filter: "unavailable",
-    inList: false,
-    hint: "목록 응답에 없음 · 정렬만 가능",
+    hint: "정렬만 가능 · 검색 조건에서는 제외됨",
   },
   {
     key: "confirmed_yn",
-    label: "검수여부",
+    label: "검수 여부",
     type: "yn",
-    filter: "unavailable",
-    inList: false,
-    hint: "목록 응답에 없음 · 정렬만 가능",
+    filter: "server",
+    inList: true,
+    hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
   },
 ];
 
@@ -136,6 +110,57 @@ export function getFieldMeta(key: DictionaryFieldKey): DictionaryFieldMeta {
   const found = DICTIONARY_FIELDS.find((f) => f.key === key);
   if (!found) {
     throw new Error(`unknown dictionary field: ${key}`);
+  }
+  return found;
+}
+
+/** 검색 조건 Select 에 노출되는 4개 항목(요구사항 §8). */
+export type SearchConditionKey =
+  | "modern_korean"
+  | "historical_korean"
+  | "period"
+  | "confirmed_yn";
+
+export interface SearchConditionMeta {
+  key: SearchConditionKey;
+  label: string;
+  support: FilterSupport;
+  hint?: string;
+}
+
+export const SEARCH_CONDITIONS: SearchConditionMeta[] = [
+  {
+    key: "modern_korean",
+    label: "현대어",
+    support: "server",
+    hint: "부분 일치 기준 검색",
+  },
+  {
+    key: "historical_korean",
+    label: "고어",
+    support: "server",
+    hint: "부분 일치 기준 검색",
+  },
+  {
+    key: "period",
+    label: "시대 기간",
+    support: "server",
+    hint: "시작일~종료일",
+  },
+  {
+    key: "confirmed_yn",
+    label: "검수 여부",
+    support: "server",
+    hint: "검수/비검수 분류",
+  },
+];
+
+export function getSearchConditionMeta(
+  key: SearchConditionKey
+): SearchConditionMeta {
+  const found = SEARCH_CONDITIONS.find((c) => c.key === key);
+  if (!found) {
+    throw new Error(`unknown search condition: ${key}`);
   }
   return found;
 }

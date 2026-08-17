@@ -439,6 +439,84 @@ body {
     margin-top: 4px;
 }
 
+/* ============ TRANSLATION CANDIDATES (audio_path) ============ */
+
+.candidate-mismatch-banner {
+    font-size: 12px;
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+}
+
+.candidate-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.candidate-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--border);
+}
+
+.candidate-row:first-child {
+    padding-top: 0;
+    border-top: none;
+}
+
+.candidate-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.candidate-ko {
+    font-size: 15px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.candidate-ipa {
+    color: var(--text-sub);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.candidate-audio {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.candidate-audio-el {
+    width: 230px;
+    margin-top: 0;
+}
+
+.audio-badge {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.audio-badge.notexist {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.audio-badge.expired {
+    color: #b8860b;
+    background: rgba(184, 134, 11, 0.12);
+    border: 1px solid rgba(184, 134, 11, 0.35);
+}
+
 /* ============ MARKDOWN ============ */
 
 .markdown > *:first-child {

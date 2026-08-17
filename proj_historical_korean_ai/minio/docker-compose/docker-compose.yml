@@ -19,6 +19,7 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET=${MINIO_BUCKET}
       - MINIO_LOCAL=${MINIO_LOCAL}
+      - MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:30001
     shm_size: '1gb'
     restart: unless-stopped
     networks:

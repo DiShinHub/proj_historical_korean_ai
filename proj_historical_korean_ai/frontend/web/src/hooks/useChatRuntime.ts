@@ -7,6 +7,7 @@ import {
   assistantResolved,
   assistantErrored,
 } from "@/redux/slices/messagesSlice";
+import { buildCandidates, parseSocketMessage } from "@/lib/chat/audio";
 
 /**
  * 소켓 생명주기와 응답 라우팅을 담당하는 훅.
@@ -73,10 +74,16 @@ export function useChatRuntime(activeSeq: number | null): void {
       }
 
       // ── 응답 완료(1응답) ──
+      // 소켓 텍스트는 "text^T|A^audio_path" 형태이며, 후보가 여러 개면
+      // "\n\n" 으로 이어져 온다(데이터 API 조회와 동일한 UI 로 노출해야 함).
+      const { content, audioPaths } = parseSocketMessage(text);
+      const { candidates, mismatch } = buildCandidates(content, null, audioPaths, false);
       dispatch(
         assistantResolved({
           sessionSeq,
-          text,
+          text: content.join("\n\n"),
+          candidates,
+          audioMismatch: mismatch,
           audioUrl: payload.audio_url,
           messageSeq: payload.message_seq,
         })

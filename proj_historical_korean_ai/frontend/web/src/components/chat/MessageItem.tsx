@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ChatMessage } from "@/redux/slices/messagesSlice";
 import Markdown from "./Markdown";
 import TypingIndicator from "./TypingIndicator";
+import CandidateAudio from "./CandidateAudio";
 
 interface MessageItemProps {
   message: ChatMessage;
@@ -16,6 +17,8 @@ export default function MessageItem({ message, onRetry }: MessageItemProps) {
 }
 
 function UserMessage({ message, onRetry }: MessageItemProps) {
+  const textContent = message.content;
+
   return (
     <div className="message user">
       <div className="bubble">
@@ -24,7 +27,7 @@ function UserMessage({ message, onRetry }: MessageItemProps) {
             📎 {message.attachmentName}
           </div>
         ) : null}
-        <div className="bubble-text">{message.content}</div>
+        <div className="bubble-text">{textContent}</div>
         {message.status === "failed" ? (
           <div className="msg-error">
             <span>전송 실패</span>
@@ -42,10 +45,13 @@ function UserMessage({ message, onRetry }: MessageItemProps) {
 
 function AssistantMessage({ message, onRetry }: MessageItemProps) {
   const [copied, setCopied] = useState(false);
+  const textContent = message.content;
+  const candidates = message.candidates;
+  const hasCandidates = !!candidates && candidates.length > 0;
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText(message.content);
+      await navigator.clipboard.writeText(textContent);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -83,20 +89,31 @@ function AssistantMessage({ message, onRetry }: MessageItemProps) {
     );
   }
 
-  const isEmpty = message.status === "done" && message.content.trim() === "";
+  const isEmpty = message.status === "done" && !hasCandidates && textContent.trim() === "";
 
   return (
     <div className="message assistant">
       <div className="response-card translation">
         <div className="card-title">번역 결과</div>
+        {message.audioMismatch ? (
+          <div className="candidate-mismatch-banner">
+            번역 텍스트와 오디오 개수가 일치하지 않아 순서대로만 표시합니다.
+          </div>
+        ) : null}
         <div className="card-content">
           {isEmpty ? (
             <span className="muted">
               (응답이 비어 있습니다 — 백엔드가 아직 텍스트를 생성하지 않습니다.
               체크포인트 #2)
             </span>
+          ) : hasCandidates ? (
+            <div className="candidate-list">
+              {candidates!.map((candidate, i) => (
+                <CandidateAudio key={i} candidate={candidate} />
+              ))}
+            </div>
           ) : (
-            <Markdown content={message.content} />
+            <Markdown content={textContent} />
           )}
           {message.status === "streaming" ? (
             <span className="stream-caret" aria-hidden />

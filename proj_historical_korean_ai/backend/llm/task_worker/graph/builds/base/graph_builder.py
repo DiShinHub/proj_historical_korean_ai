@@ -27,7 +27,7 @@ class BaseBuilder():
         
         # 노드 셋팅
         self.builder.add_node("initialize_graph", RuleNode(rule=BaseRules.initialize_graph, llm=self.llm))
-        self.builder.add_node(f"prompt", LLMRequestNode(BasePrompts.prompt))
+        self.builder.add_node(f"prompt", LLMRequestNode(prompt_template=BasePrompts.prompt))
         
         # 노드 연결
         self.builder.set_entry_point("initialize_graph")

@@ -417,6 +417,51 @@
     color: #e0a63f;
 }
 
+/* ============ SEARCH BAR ============ */
+
+.searchBar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.checkboxLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* ============ CONFIRMED BADGE ============ */
+
+.badgeConfirmedY,
+.badgeConfirmedN {
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+}
+
+.badgeConfirmedY {
+    background: rgba(46, 160, 90, 0.14);
+    color: var(--ok);
+}
+
+.badgeConfirmedN {
+    background: rgba(224, 166, 63, 0.18);
+    color: #b07a1c;
+}
+
+:global(body.dark) .badgeConfirmedN {
+    color: #e0a63f;
+}
+
 /* ============ TABLE ============ */
 
 .tableWrap {

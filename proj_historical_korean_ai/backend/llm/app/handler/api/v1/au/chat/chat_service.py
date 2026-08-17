@@ -161,7 +161,7 @@ class ChatService:
             success=True,
             data={}
         )
-        
+    
     @Transactional()
     async def post_chat_message(
         self,
@@ -182,19 +182,27 @@ class ChatService:
 
         if session.member_seq != user_details.seq:
             raise BadRequestException("권한 없음")
+        
+        if isinstance(content, str):
+            content_list = [content]
+        elif isinstance(content, list):
+            content_list = content
+        else:
+            raise BadRequestException("올바르지 않은 content 형식입니다.")
 
         try:
             result = await self.__chat_dao.add_chat_message(
                 ChatMessageEntity(
                     chat_session_seq=chat_session_seq,
                     role=role,
-                    content=content,
+                    content=content_list,
                     reg_dt=datetime.datetime.now(),
                     mod_dt=datetime.datetime.now()
                 )
             )
 
         except Exception as e:
+            self.__logger.error(f"error : {str(e)}")
             raise InternalServerException("메시지 생성 실패")
 
         # task_worker에게 데이터 전송
@@ -204,20 +212,20 @@ class ChatService:
         task = {
             "task_id": task_id,
             "task_status": "wait",
-            "retry_cnt" : 0,
+            "retry_cnt": 0,
             "params": {
-                "input_message" : input_message,
-                "room_name" : str(chat_session_seq),
-                "chat_session_seq" : chat_session_seq
+                "input_message": input_message,
+                "room_name": str(chat_session_seq),
+                "chat_session_seq": chat_session_seq
             },
         }
-        task = json.dumps(task)
+        task_json = json.dumps(task)
         
-        try : 
-            self.get_redis_connection().lpush(service_cd, task)
+        try:
+            self.get_redis_connection().lpush(service_cd, task_json)
 
-        except Exception as e :
-            self.__logger.error(f"ChatService.post_chat_message error, service_cd : {service_cd}, task : {task}, error : {str(e)}")
+        except Exception as e:
+            self.__logger.error(f"ChatService.post_chat_message error, service_cd : {service_cd}, task : {task_json}, error : {str(e)}")
             raise InternalServerException("관리자에게 문의하세요.")
 
         return ResultVo(
@@ -254,6 +262,9 @@ class ChatService:
                         "seq": m.seq,
                         "role": m.role,
                         "content": m.content,
+                        "ipa": m.ipa,
+                        "audio_path": m.audio_path,
+                        "audio_expire_yn": m.audio_expire_yn,
                         "reg_dt": m.reg_dt
                     }
                     for m in data
@@ -271,10 +282,17 @@ class ChatService:
         content = request_dto.get("content")
         feedback_type = request_dto.get("feedback_type")
         feedback_comment = request_dto.get("feedback_comment")
-        
         feedback_dt = None
         if feedback_type or feedback_comment:
-            feedback_dt=datetime.datetime.now()
+            feedback_dt = datetime.datetime.now()
+
+        if content:
+            if isinstance(content, str):
+                content = [content]
+            elif isinstance(content, list):
+                content = content
+            else:
+                raise BadRequestException("올바르지 않은 content 형식입니다.")
 
         try:
             await self.__chat_dao.update_chat_message(

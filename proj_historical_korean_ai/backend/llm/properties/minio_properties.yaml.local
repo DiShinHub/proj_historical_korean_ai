@@ -1,0 +1,58 @@
+common:
+  minio:
+    minio_internal_url: hk-ai-minio-compose
+    minio_external_url: hk-ai-minio-compose
+    minio_service_port: 9000
+    minio_console_port: 9001
+    minio_root_user: minio
+    minio_root_password: minioadmin
+    minio_access_key: 2P6CYYSR29707BNFYLM0
+    minio_secret_key: Tj+LoHsUYNxJBbSnsnG06ND3g73Qo9o5InvYvLnh
+    minio_bucket: hkai-bucket
+    minio_presign_url_expire: 60
+    minio_local: minio_local
+
+# development
+dev:
+  minio:    
+    minio_internal_url: hk-ai-minio-compose
+    minio_external_url: hk-ai-minio-compose
+    minio_service_port: 9000
+    minio_console_port: 9001
+    minio_root_user: minio
+    minio_root_password: minioadmin
+    minio_access_key: 2P6CYYSR29707BNFYLM0
+    minio_secret_key: Tj+LoHsUYNxJBbSnsnG06ND3g73Qo9o5InvYvLnh
+    minio_bucket: hkai-bucket
+    minio_presign_url_expire: 60
+    minio_local: minio_local
+
+# staging
+stg:
+  minio:    
+    minio_internal_url: hk-ai-minio-compose
+    minio_external_url: hk-ai-minio-compose
+    minio_service_port: 9000
+    minio_console_port: 9001
+    minio_root_user: minio
+    minio_root_password: minioadmin
+    minio_access_key: 2P6CYYSR29707BNFYLM0
+    minio_secret_key: Tj+LoHsUYNxJBbSnsnG06ND3g73Qo9o5InvYvLnh
+    minio_bucket: hkai-bucket
+    minio_presign_url_expire: 60
+    minio_local: minio_local
+
+# production
+prd:
+  minio:    
+    minio_internal_url: hk-ai-minio-compose
+    minio_external_url: hk-ai-minio-compose
+    minio_service_port: 9000
+    minio_console_port: 9001
+    minio_root_user: minio
+    minio_root_password: minioadmin
+    minio_access_key: 2P6CYYSR29707BNFYLM0
+    minio_secret_key: Tj+LoHsUYNxJBbSnsnG06ND3g73Qo9o5InvYvLnh
+    minio_bucket: hkai-bucket
+    minio_presign_url_expire: 60
+    minio_local: minio_local

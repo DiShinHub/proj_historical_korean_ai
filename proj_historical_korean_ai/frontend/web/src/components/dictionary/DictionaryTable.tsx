@@ -12,8 +12,7 @@ interface Column {
 
 /**
  * 목록 응답에 실제로 들어 있는 필드만 컬럼으로 만든다.
- * (reg_member_seq / mod_dt / mod_member_seq / confirmed_yn 은 목록 API 미제공 →
- *  단건 상세 모달에서 확인한다)
+ * (reg_member_seq / mod_member_seq 는 목록 API 미제공 → 단건 상세 모달에서 확인한다)
  */
 const COLUMNS: Column[] = [
   { key: "seq", label: "번호" },
@@ -22,13 +21,17 @@ const COLUMNS: Column[] = [
   { key: "historical_period_start_dt", label: "시대 시작" },
   { key: "historical_period_end_dt", label: "시대 종료" },
   { key: "reg_dt", label: "등록일시" },
+  { key: "confirmed_yn", label: "검수 여부" },
 ];
 
 interface DictionaryTableProps {
   items: HkDictionaryDto[];
   sort: DictionarySortState;
   loading: boolean;
+  selectedSeqs: Set<number>;
   onToggleSort: (key: DictionaryFieldKey) => void;
+  onToggleSelect: (seq: number) => void;
+  onToggleSelectAll: () => void;
   onView: (item: HkDictionaryDto) => void;
   onEdit: (item: HkDictionaryDto) => void;
   onDelete: (item: HkDictionaryDto) => void;
@@ -38,16 +41,33 @@ export default function DictionaryTable({
   items,
   sort,
   loading,
+  selectedSeqs,
   onToggleSort,
+  onToggleSelect,
+  onToggleSelectAll,
   onView,
   onEdit,
   onDelete,
 }: DictionaryTableProps) {
+  const allSelected =
+    items.length > 0 && items.every((item) => selectedSeqs.has(item.seq));
+
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
+            <th scope="col">
+              <div className={styles.thStatic}>
+                <input
+                  type="checkbox"
+                  aria-label="전체 선택"
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
+                  disabled={items.length === 0}
+                />
+              </div>
+            </th>
             {COLUMNS.map((col) => {
               const active = sort.orderBy === col.key;
               const mark = !active ? "↕" : sort.orderDirection === "asc" ? "▲" : "▼";
@@ -83,7 +103,7 @@ export default function DictionaryTable({
         <tbody>
           {loading && items.length === 0 ? (
             <tr>
-              <td className={styles.emptyRow} colSpan={COLUMNS.length + 1}>
+              <td className={styles.emptyRow} colSpan={COLUMNS.length + 2}>
                 불러오는 중…
               </td>
             </tr>
@@ -91,7 +111,7 @@ export default function DictionaryTable({
 
           {!loading && items.length === 0 ? (
             <tr>
-              <td className={styles.emptyRow} colSpan={COLUMNS.length + 1}>
+              <td className={styles.emptyRow} colSpan={COLUMNS.length + 2}>
                 조회된 사전 항목이 없습니다.
               </td>
             </tr>
@@ -99,6 +119,14 @@ export default function DictionaryTable({
 
           {items.map((item) => (
             <tr key={item.seq}>
+              <td>
+                <input
+                  type="checkbox"
+                  aria-label={`#${item.seq} 선택`}
+                  checked={selectedSeqs.has(item.seq)}
+                  onChange={() => onToggleSelect(item.seq)}
+                />
+              </td>
               <td className={styles.cellNum}>{item.seq}</td>
               <td className={styles.cellWord}>{item.modern_korean}</td>
               <td className={styles.cellHistorical}>{item.historical_korean}</td>
@@ -109,6 +137,17 @@ export default function DictionaryTable({
                 {formatDate(item.historical_period_end_dt)}
               </td>
               <td className={styles.cellDt}>{formatDateTime(item.reg_dt)}</td>
+              <td>
+                <span
+                  className={
+                    item.confirmed_yn === "Y"
+                      ? styles.badgeConfirmedY
+                      : styles.badgeConfirmedN
+                  }
+                >
+                  {item.confirmed_yn === "Y" ? "검수 완료" : "미검수"}
+                </span>
+              </td>
               <td>
                 <div className={styles.rowActions}>
                   <button

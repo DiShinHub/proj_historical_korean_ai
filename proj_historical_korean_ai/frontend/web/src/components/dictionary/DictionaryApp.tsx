@@ -11,7 +11,11 @@ import {
   useDictionaryRoom,
   type DictionaryEventLevel,
 } from "@/hooks/useDictionaryRoom";
-import { deleteDictionary, type HkDictionaryDto } from "@/lib/api/dictionary";
+import {
+  confirmDictionaries,
+  deleteDictionary,
+  type HkDictionaryDto,
+} from "@/lib/api/dictionary";
 import type { ApiError } from "@/lib/api/types";
 import type { SocketStatus } from "@/lib/socket";
 
@@ -93,6 +97,7 @@ function DictionaryConsole() {
   const [dialog, setDialog] = useState<DialogState>({ type: "none" });
   const [flash, setFlash] = useState<Flash | null>(null);
   const [deletingSeq, setDeletingSeq] = useState<number | null>(null);
+  const [bulkConfirming, setBulkConfirming] = useState(false);
 
   // 소켓 room 은 세션별이 아닌 전체 통합. 작업 완료 시 목록을 새로고침한다.
   const refresh = list.refresh;
@@ -148,6 +153,31 @@ function DictionaryConsole() {
     },
     [notify, refresh]
   );
+
+  const handleBulkConfirm = useCallback(async () => {
+    const seqs = Array.from(list.selectedSeqs);
+    if (seqs.length === 0) return;
+
+    const confirmed = window.confirm(
+      `선택한 ${seqs.length}개의 항목을 검수 처리하시겠습니까?`
+    );
+    if (!confirmed) return;
+
+    console.log("[dictionary] bulk confirm request →", { seqs });
+    setBulkConfirming(true);
+    try {
+      await confirmDictionaries({ seqs, confirmed_yn: "Y" });
+      console.log("[dictionary] bulk confirm ← ok", { seqs });
+      notify("success", `${seqs.length}개 항목을 검수 완료로 처리했습니다.`);
+      refresh();
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.log("[dictionary] bulk confirm ← error", apiError);
+      notify("fail", apiError?.message ?? "일괄 검수에 실패했습니다.");
+    } finally {
+      setBulkConfirming(false);
+    }
+  }, [list.selectedSeqs, notify, refresh]);
 
   const closeDialog = useCallback(() => setDialog({ type: "none" }), []);
 
@@ -286,12 +316,40 @@ function DictionaryConsole() {
               </div>
             ) : null}
 
+            {/* ── 일괄 검수 ─────────────────────────────────── */}
+            {list.selectedSeqs.size > 0 ? (
+              <div className={styles.actionRow}>
+                <span className={styles.fieldHint}>
+                  {list.selectedSeqs.size}개 선택됨
+                </span>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  disabled={bulkConfirming}
+                  onClick={handleBulkConfirm}
+                >
+                  {bulkConfirming ? "검수 처리 중…" : "✔ 일괄 검수"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.btn}
+                  disabled={bulkConfirming}
+                  onClick={list.clearSelection}
+                >
+                  선택 해제
+                </button>
+              </div>
+            ) : null}
+
             {/* ── 목록 ──────────────────────────────────────── */}
             <DictionaryTable
               items={list.items}
               sort={list.sort}
-              loading={list.loading || deletingSeq != null}
+              loading={list.loading || deletingSeq != null || bulkConfirming}
+              selectedSeqs={list.selectedSeqs}
               onToggleSort={list.toggleSort}
+              onToggleSelect={list.toggleSelect}
+              onToggleSelectAll={list.toggleSelectAll}
               onView={(item) => setDialog({ type: "detail", seq: item.seq })}
               onEdit={(item) => setDialog({ type: "form", target: item })}
               onDelete={handleDelete}

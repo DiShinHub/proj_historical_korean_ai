@@ -11,7 +11,6 @@ from langgraph.graph import StateGraph, END
 
 class HKTranslator14CBuilder():
     """_summary_
-    프롬프트 튜닝 없이 llm 요청
     """
     
     def __init__(
@@ -28,14 +27,14 @@ class HKTranslator14CBuilder():
         # 노드 셋팅
         self.builder.add_node("initialize_graph", RuleNode(rule=HKTranslator14CRules.initialize_graph, llm=self.llm))
         self.builder.add_node("prompt_14c", LLMRequestNode(HKTranslator14CPrompts.prompt_14c))
-        self.builder.add_node("regen_llm_node_response_json_prev", RuleNode(rule=HKTranslator14CRules.regen_llm_node_response_json_prev))
+        self.builder.add_node("set_translations_as_text_prev", RuleNode(rule=HKTranslator14CRules.set_translations_as_text_prev))
         
         # 노드 연결
         self.builder.set_entry_point("initialize_graph")
         node_sequence = [
             "initialize_graph",
             "prompt_14c",
-            "regen_llm_node_response_json_prev",
+            "set_translations_as_text_prev",
             END
         ]
         self.add_linear_edges(node_sequence)

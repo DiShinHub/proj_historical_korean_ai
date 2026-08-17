@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, TIMESTAMP, String, Text
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from app.config.database_config.database_config_repository import Base
 from app.base.base_code_enum import BaseCodeEnum
@@ -9,7 +10,10 @@ class ChatMessageEntity(Base):
     chat_session_seq = Column(Integer, nullable=False, index=True)
     model_name = Column(String(100))
     role = Column(String(20), nullable=False, index=True)
-    content = Column(Text)
+    content = Column(ARRAY(Text))
+    ipa = Column(ARRAY(Text))
+    audio_path = Column(ARRAY(Text))
+    audio_expire_yn = Column(String(1), nullable=True, default="N")
     response_time_ms = Column(Integer)
     feedback_type = Column(String(20))
     feedback_comment = Column(Text)

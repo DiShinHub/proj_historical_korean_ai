@@ -31,8 +31,18 @@ function toWebSocketUrl(httpUrl: string): string {
   return `${wsBase}/websocket/ws`;
 }
 
+// audio_path(예: "/audio/output_xxx.wav")를 재생 가능한 URL로 만들기 위한
+// MinIO 엔드포인트/버킷. 백엔드 properties 와 별개로 브라우저가 직접
+// MinIO 오브젝트를 조회하므로(익명 다운로드 정책 전제) 프론트 env 로 노출한다.
+// 값이 없으면 로컬 개발 docker-compose 기준 기본값을 사용한다.
+const minioEndpoint =
+  process.env.NEXT_PUBLIC_MINIO_ENDPOINT || "http://localhost:9000";
+const minioBucket = process.env.NEXT_PUBLIC_MINIO_BUCKET || "hkai-bucket";
+
 export const env = {
   apiBaseUrl,
   apiTimeoutMs: readTimeoutMs(),
   wsUrl: toWebSocketUrl(apiBaseUrl),
+  minioEndpoint,
+  minioBucket,
 };

@@ -11,6 +11,7 @@ import type { ResultVo } from "./types";
  *   PUT    /api/v1/au/hk_dictionary/{seq}    수정
  *   DELETE /api/v1/au/hk_dictionary/{seq}    삭제 (Soft Delete: delete_yn='Y')
  *   POST   /api/v1/au/hk_dictionary/dump     원문 일괄 적재(비동기 · 소켓으로 결과 통보)
+ *   PUT    /api/v1/au/hk_dictionary/confirms 일괄 검수(confirmed_yn 일괄 반영)
  *
  * ⚠️ /dump 를 제외한 나머지는 응답이 동기적으로 확정된다.
  *    /dump 는 Redis 큐(TSK_002)에 태스크만 밀어 넣고 즉시 success 를 반환하며,
@@ -137,6 +138,22 @@ export async function dumpRawDictionary(
   payload: HkDictionaryDumpPayload
 ): Promise<void> {
   await httpClient.post<ResultVo>(`${BASE}/dump`, payload);
+}
+
+export interface HkDictionaryConfirmsPayload {
+  seqs: number[];
+  /** 기본값 'Y'(백엔드가 미전달 시 채움). 명시적으로 'N' 을 보낼 수도 있다. */
+  confirmed_yn?: "Y" | "N";
+}
+
+/**
+ * PUT /au/hk_dictionary/confirms — 여러 항목의 confirmed_yn 을 한 번에 반영.
+ * 백엔드 계약(hk_dictionary_service.confirms_hk_dictionary): { seqs, confirmed_yn }
+ */
+export async function confirmDictionaries(
+  payload: HkDictionaryConfirmsPayload
+): Promise<void> {
+  await httpClient.put<ResultVo>(`${BASE}/confirms`, payload);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

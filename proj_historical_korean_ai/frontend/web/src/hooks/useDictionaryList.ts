@@ -4,45 +4,44 @@ import {
   type HkDictionaryDto,
 } from "@/lib/api/dictionary";
 import type { ApiError } from "@/lib/api/types";
-import type { DictionaryFieldKey } from "@/lib/dictionary/fields";
-import {
-  isDateInRange,
-  toDateInputValue,
-  toPeriodEndIso,
-  toPeriodStartIso,
-} from "@/lib/dictionary/datetime";
+import type {
+  DictionaryFieldKey,
+  SearchConditionKey,
+} from "@/lib/dictionary/fields";
+import { toPeriodEndIso, toPeriodStartIso } from "@/lib/dictionary/datetime";
 
 /**
  * 목록 조회 상태 관리 훅.
  *
- * 서버가 지원하는 필터(현대어 / 시대 기간)는 쿼리 파라미터로 보내고,
- * 서버 미지원 필터(seq / 고어 / 등록일시)는 받아온 **현재 페이지**에 한해
- * 클라이언트에서 거른다. 어떤 필터가 어느 쪽인지는 fields.ts 의 메타데이터가 기준이다.
+ * 검색 조건은 4개 중 여러 개를 동시에 선택해서 AND 로 결합할 수 있다
+ * (현대어 / 고어 / 시대 기간 / 검수 여부).
+ * 서버가 지원하는 조건(현대어 / 시대 기간)은 쿼리 파라미터로 보내고,
+ * 서버 미지원 조건(고어 / 검수 여부)은 받아온 **현재 페이지**에 한해
+ * 클라이언트에서 거른다(선택된 조건들끼리는 AND). 어떤 조건이 어느 쪽인지는
+ * fields.ts 의 SEARCH_CONDITIONS 가 기준이다.
  */
 
 export interface DictionaryFilterState {
-  /** client 필터 */
-  seq: string;
+  /** 4개 검색 조건 중 현재 활성화된 것들(다중 선택, AND 결합) */
+  conditions: SearchConditionKey[];
   /** server 필터 (LIKE) */
   modern_korean: string;
-  /** client 필터 */
+  /** client 필터(현재 페이지 한정) */
   historical_korean: string;
   /** server 필터 — 기간 바(YYYY-MM-DD) */
   periodStart: string;
   periodEnd: string;
-  /** client 필터 — 등록일시 범위(YYYY-MM-DD) */
-  regDtFrom: string;
-  regDtTo: string;
+  /** client 필터(현재 페이지 한정). "" | "Y" | "N" */
+  confirmed_yn: string;
 }
 
 export const EMPTY_FILTERS: DictionaryFilterState = {
-  seq: "",
+  conditions: ["modern_korean", "historical_korean", "period", "confirmed_yn"],
   modern_korean: "",
   historical_korean: "",
   periodStart: "",
   periodEnd: "",
-  regDtFrom: "",
-  regDtTo: "",
+  confirmed_yn: "",
 };
 
 export interface DictionarySortState {
@@ -73,7 +72,7 @@ export interface UseDictionaryListResult {
 
   filters: DictionaryFilterState;
   sort: DictionarySortState;
-  /** 현재 클라이언트 필터가 하나라도 걸려 있는가 */
+  /** 현재 클라이언트 필터가 걸려 있는가(고어 / 검수 여부 조건 선택 + 값 있음) */
   clientFilterActive: boolean;
 
   applyFilters: (next: DictionaryFilterState) => void;
@@ -83,15 +82,22 @@ export interface UseDictionaryListResult {
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
   refresh: () => void;
+
+  /** 일괄 검수용 행 선택 */
+  selectedSeqs: Set<number>;
+  toggleSelect: (seq: number) => void;
+  toggleSelectAll: () => void;
+  clearSelection: () => void;
 }
 
 function hasClientFilter(f: DictionaryFilterState): boolean {
-  return Boolean(
-    f.seq.trim() ||
-      f.historical_korean.trim() ||
-      f.regDtFrom ||
-      f.regDtTo
-  );
+  if (f.conditions.includes("historical_korean") && f.historical_korean.trim()) {
+    return true;
+  }
+  if (f.conditions.includes("confirmed_yn") && f.confirmed_yn) {
+    return true;
+  }
+  return false;
 }
 
 export function useDictionaryList(): UseDictionaryListResult {
@@ -106,6 +112,8 @@ export function useDictionaryList(): UseDictionaryListResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [selectedSeqs, setSelectedSeqs] = useState<Set<number>>(new Set());
+
   // 늦게 도착한 이전 요청이 최신 결과를 덮어쓰지 않도록 막는다.
   const requestSeq = useRef(0);
 
@@ -116,22 +124,44 @@ export function useDictionaryList(): UseDictionaryListResult {
     setLoading(true);
     setError(null);
 
-    listDictionary({
-      modern_korean: filters.modern_korean.trim() || undefined,
-      historical_period_start_dt: toPeriodStartIso(filters.periodStart),
-      historical_period_end_dt: toPeriodEndIso(filters.periodEnd),
+    const query = {
+      // 선택된 조건에 해당하는 값만 서버로 전달한다(다중 조건은 AND 로 결합).
+      modern_korean: filters.conditions.includes("modern_korean")
+        ? filters.modern_korean.trim() || undefined
+        : undefined,
+      historical_korean: filters.conditions.includes("historical_korean")
+        ? filters.historical_korean.trim() || undefined
+        : undefined,
+      historical_period_start_dt: filters.conditions.includes("period")
+        ? toPeriodStartIso(filters.periodStart)
+        : undefined,
+      historical_period_end_dt: filters.conditions.includes("period")
+        ? toPeriodEndIso(filters.periodEnd)
+        : undefined,
+      confirmed_yn: filters.conditions.includes("confirmed_yn")
+        ? filters.confirmed_yn.trim() || undefined
+        : undefined,
       order_by: sort.orderBy,
       order_direction: sort.orderDirection,
       page,
       page_size: pageSize,
-    })
+    };
+
+    console.log("[dictionary] list fetch →", query);
+
+    listDictionary(query)
       .then((result) => {
         if (cancelled || currentRequest !== requestSeq.current) return;
+        console.log("[dictionary] list fetch ← ok", {
+          total_cnt: result.total_cnt,
+          rows: result.data_list.length,
+        });
         setRows(result.data_list);
         setTotalCnt(result.total_cnt);
       })
       .catch((err: ApiError) => {
         if (cancelled || currentRequest !== requestSeq.current) return;
+        console.log("[dictionary] list fetch ← error", err);
         setRows([]);
         setTotalCnt(0);
         setError(err?.message ?? "목록을 불러오지 못했습니다.");
@@ -145,9 +175,12 @@ export function useDictionaryList(): UseDictionaryListResult {
       cancelled = true;
     };
   }, [
+    filters.conditions,
     filters.modern_korean,
+    filters.historical_korean,
     filters.periodStart,
     filters.periodEnd,
+    filters.confirmed_yn,
     sort.orderBy,
     sort.orderDirection,
     page,
@@ -155,63 +188,66 @@ export function useDictionaryList(): UseDictionaryListResult {
     reloadToken,
   ]);
 
-  // ── 서버 미지원 필터: 현재 페이지 한정 클라이언트 필터 ────────────────────
+  // 새로 응답을 받은 페이지에 대해서는 이전 선택을 유지하지 않는다
+  // (화면에 없는 seq 가 선택된 채로 남아 일괄 검수에 잘못 반영되는 것을 막는다).
+  useEffect(() => {
+    setSelectedSeqs(new Set());
+  }, [rows]);
+
+  // ── 서버 미지원 조건(고어 / 검수 여부): 현재 페이지 한정 클라이언트 필터 ──────────
+  // 여러 조건이 함께 선택된 경우 AND 로 결합한다.
   const items = useMemo(() => {
-    const seqTerm = filters.seq.trim();
-    const historicalTerm = filters.historical_korean.trim();
+    const historicalTerm = filters.conditions.includes("historical_korean")
+      ? filters.historical_korean.trim()
+      : "";
+    const confirmedFilter = filters.conditions.includes("confirmed_yn")
+      ? filters.confirmed_yn
+      : "";
+
+    if (!historicalTerm && !confirmedFilter) return rows;
 
     return rows.filter((row) => {
-      if (seqTerm && !String(row.seq).includes(seqTerm)) return false;
-
-      if (
-        historicalTerm &&
-        !(row.historical_korean ?? "").includes(historicalTerm)
-      ) {
+      if (historicalTerm && !(row.historical_korean ?? "").includes(historicalTerm)) {
         return false;
       }
-
-      if (filters.regDtFrom || filters.regDtTo) {
-        const regDate = toDateInputValue(row.reg_dt);
-        if (!isDateInRange(regDate, filters.regDtFrom, filters.regDtTo)) {
-          return false;
-        }
+      if (confirmedFilter && row.confirmed_yn !== confirmedFilter) {
+        return false;
       }
-
       return true;
     });
-  }, [
-    rows,
-    filters.seq,
-    filters.historical_korean,
-    filters.regDtFrom,
-    filters.regDtTo,
-  ]);
+  }, [rows, filters.conditions, filters.historical_korean, filters.confirmed_yn]);
 
   const applyFilters = useCallback((next: DictionaryFilterState) => {
+    console.log("[dictionary] applyFilters", next);
     setFilters(next);
     setPageState(1);
   }, []);
 
   const resetFilters = useCallback(() => {
+    console.log("[dictionary] resetFilters");
     setFilters(EMPTY_FILTERS);
     setSortState(DEFAULT_SORT);
     setPageState(1);
   }, []);
 
   const setSort = useCallback((next: DictionarySortState) => {
+    console.log("[dictionary] setSort", next);
     setSortState(next);
     setPageState(1);
   }, []);
 
   const toggleSort = useCallback((key: DictionaryFieldKey) => {
-    setSortState((prev) =>
-      prev.orderBy === key
-        ? {
-            orderBy: key,
-            orderDirection: prev.orderDirection === "asc" ? "desc" : "asc",
-          }
-        : { orderBy: key, orderDirection: "asc" }
-    );
+    setSortState((prev) => {
+      const next: DictionarySortState =
+        prev.orderBy === key
+          ? {
+              orderBy: key,
+              orderDirection: prev.orderDirection === "asc" ? "desc" : "asc",
+            }
+          : { orderBy: key, orderDirection: "asc" };
+      console.log("[dictionary] toggleSort", next);
+      return next;
+    });
     setPageState(1);
   }, []);
 
@@ -230,6 +266,41 @@ export function useDictionaryList(): UseDictionaryListResult {
   }, []);
 
   const refresh = useCallback(() => setReloadToken((n) => n + 1), []);
+
+  const toggleSelect = useCallback((seq: number) => {
+    setSelectedSeqs((prev) => {
+      const next = new Set(prev);
+      if (next.has(seq)) {
+        next.delete(seq);
+      } else {
+        next.add(seq);
+      }
+      console.log("[dictionary] toggleSelect", {
+        seq,
+        selected: Array.from(next),
+      });
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedSeqs((prev) => {
+      const allSelected =
+        items.length > 0 && items.every((item) => prev.has(item.seq));
+      const next = allSelected
+        ? new Set<number>()
+        : new Set(items.map((item) => item.seq));
+      console.log("[dictionary] toggleSelectAll", {
+        selected: Array.from(next),
+      });
+      return next;
+    });
+  }, [items]);
+
+  const clearSelection = useCallback(() => {
+    console.log("[dictionary] clearSelection");
+    setSelectedSeqs(new Set());
+  }, []);
 
   return {
     items,
@@ -250,5 +321,9 @@ export function useDictionaryList(): UseDictionaryListResult {
     setPage,
     setPageSize,
     refresh,
+    selectedSeqs,
+    toggleSelect,
+    toggleSelectAll,
+    clearSelection,
   };
 }

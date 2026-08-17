@@ -195,7 +195,7 @@ class BaseRules:
         ----------
             member_seq (int): 요청자 시퀀스
         """
-        member_seq = None
+        member_seq = 1
         prompt_rule = state.get("prompt_rule")
         if prompt_rule:
             prompt_rule_dict = {}
@@ -204,7 +204,7 @@ class BaseRules:
                     key, value = item.split('=', 1)
                     prompt_rule_dict[key] = value
             
-            member_seq = prompt_rule_dict.get("member_seq")
+            member_seq = prompt_rule_dict.get("member_seq", 1)
         
         return {
             "member_seq": member_seq,
@@ -227,7 +227,7 @@ class BaseRules:
             prompt_template_name (str) : 프롬프트 탬플릿(객체) 이름
             llm_node_response_text_prev (str) : 노드 처리 결과
         """
-        member_seq = BaseRules.parse_prompt_rule(state).get("member_seq")
+        member_seq = BaseRules.parse_prompt_rule(state).get("member_seq", 1)
         
         llm_model_name = None
         llm = state.get("llm")
@@ -245,3 +245,41 @@ class BaseRules:
         return {
             **state
         }
+
+    @staticmethod
+    def set_translations_as_text_prev(state: LanggraphState):
+        """
+        state 설정
+        
+        Parameters
+        ----------
+            state (LanggraphState): state 객체
+            
+        Returns 
+        ----------
+            update (kwargs): 업데이트 할 값
+        """
+
+        # 예외처리, 변환할 수 없는 경우 state 그대로 리턴
+        updated_state = {**state}
+        if state.get("llm_node_response_json_prev") == None:
+            return updated_state
+        
+        if len(state.get("llm_node_response_json_prev")) == 0:
+            return updated_state
+        
+        if state.get("llm_node_response_json_prev").get("translations") == None:
+            return updated_state
+
+        # 형식 변경
+        llm_node_response_text_prev_new = ""
+        translations = state.get("llm_node_response_json_prev").get("translations", [])
+        llm_node_response_text_prev_new = "\n\n".join(translations)
+
+        # 상태 갱신 
+        kwargs = {}
+        kwargs["llm_node_response_text_prev"] = llm_node_response_text_prev_new
+        res_set_state = BaseRules.set_state(state, **kwargs)
+        
+        updated_state |= res_set_state
+        return updated_state
