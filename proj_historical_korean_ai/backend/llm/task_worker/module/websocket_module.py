@@ -5,7 +5,7 @@ import asyncio
 import threading
 import json
 import websockets
-
+import time
 
 class WebSocketModule:
 
@@ -52,18 +52,27 @@ class WebSocketModule:
 
         async with self.lock:
 
-            if self.ws is not None:
-                return
+            for i in range (0, 10):
+                try:
+                    if self.ws is not None:
+                        return
 
-            self.__logger.info(f"Connect WebSocket : {self.url}")
+                    self.ws = await websockets.connect(
+                        self.url,
+                        ping_interval=20,
+                        ping_timeout=20,
+                    )
 
-            self.ws = await websockets.connect(
-                self.url,
-                ping_interval=20,
-                ping_timeout=20,
-            )
+                    self.__logger.info("WebSocket Connected")
+                    return 
 
-            self.__logger.info("WebSocket Connected")
+                except Exception as e:
+                    self.ws = None
+                    self.__logger.info(f"WebSocketModule.connect error: retry : {str(i+1)}, {str(e)}")
+                    time.sleep(1)
+
+            self.__logger.info(f"WebSocketModule.connect fail")
+
 
     async def disconnect(self):
 

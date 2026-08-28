@@ -33,7 +33,7 @@ export interface ChatMessage {
 }
 
 /** How long to wait for the first assistant chunk before timing out (ms). */
-export const ASSISTANT_TIMEOUT_MS = 45_000;
+export const ASSISTANT_TIMEOUT_MS = 180_000;
 
 interface MessagesState {
   bySession: Record<number, ChatMessage[]>;

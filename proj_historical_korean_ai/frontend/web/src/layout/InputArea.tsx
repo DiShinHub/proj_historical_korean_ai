@@ -100,10 +100,23 @@ export default function InputArea() {
           className="attach-btn"
           onClick={() => fileRef.current?.click()}
           disabled={disabled}
-          title="PDF 첨부 (백엔드 미구현)"
+          title="PDF 첨부 (개발 예정)"
           aria-label="PDF 첨부"
         >
-          📎
+
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78L13.66 3.27a3.5 3.5 0 0 1 4.95 4.95L9.4 17.43a1.5 1.5 0 0 1-2.12-2.12l8.49-8.49" />
+          </svg>
         </button>
         <input
           ref={fileRef}

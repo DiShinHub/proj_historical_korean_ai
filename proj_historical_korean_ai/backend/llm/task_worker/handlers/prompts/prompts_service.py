@@ -117,7 +117,6 @@ class PromptsService():
                 else:
                     for i in range(0, len(hk_translations)):
                         llm_msg += f"{hk_translations[i]}^T|A^{hk_audio_translations_path[i]}\n\n"
-                        self.__logger.info(f"llm_msg22 : {llm_msg}")
                 
             # default
             else:
