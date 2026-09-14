@@ -38,7 +38,7 @@ export default function ChatApp() {
         <div className="empty-icon" aria-hidden>
           ⚠️
         </div>
-        <h2>백엔드에 연결할 수 없습니다</h2>
+        <h2>서버에 연결할 수 없습니다</h2>
         <p className="muted">{authError}</p>
         <button className="new-chat" onClick={() => dispatch(initAuth())}>
           다시 시도

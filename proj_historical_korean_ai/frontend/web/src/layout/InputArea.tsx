@@ -1,13 +1,17 @@
 import { KeyboardEvent, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { sendMessage } from "@/redux/slices/messagesSlice";
-import { createSession } from "@/redux/slices/sessionsSlice";
+import { createSession, renameSession } from "@/redux/slices/sessionsSlice";
 
 const MAX_TEXTAREA_HEIGHT = 200;
 
 export default function InputArea() {
   const dispatch = useAppDispatch();
   const activeSeq = useAppSelector((s) => s.sessions.activeSeq);
+  const activeSession = useAppSelector((s) =>
+    s.sessions.items.find((item) => item.seq === activeSeq)
+  );
+  
   const sending = useAppSelector((s) =>
     activeSeq != null ? Boolean(s.messages.pendingAssistant[activeSeq]) : false
   );
@@ -18,7 +22,6 @@ export default function InputArea() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Unconfirmed optimistic session (negative seq) → block until it resolves.
   const blockedByUnconfirmed = activeSeq != null && activeSeq < 0;
   const disabled = sending || busy || blockedByUnconfirmed;
   const canSend = value.trim().length > 0 && !disabled;
@@ -42,25 +45,40 @@ export default function InputArea() {
     setBusy(true);
     try {
       let seq = activeSeq;
+      let isNewSession = false;
+
+      // 1. activeSeq가 없으면 기본 제목으로 세션 생성
       if (seq == null) {
-        // Auto-create a session titled from the first line.
+        isNewSession = true;
         const created = await dispatch(
-          createSession({ title: text.slice(0, 30) || "새 대화" })
+          createSession({ title: "새 대화" })
         ).unwrap();
         seq = created.seq;
       }
-      dispatch(
+
+      // 2. 메시지 전송
+      await dispatch(
         sendMessage({
           sessionSeq: seq,
           content: text,
           attachmentName: file?.name,
         })
       );
+
+      // 3. 신규 세션이거나 기본 타이틀 상태인 경우 메시지 기반으로 타이틀 업데이트 (updateSession API 호출)
+      const shouldUpdateTitle =
+        isNewSession || activeSession?.title === "새 대화";
+
+      if (shouldUpdateTitle && seq > 0) {
+        const newTitle = text.slice(0, 30);
+        void dispatch(renameSession({ seq, title: newTitle }));
+      }
+
       resetTextarea();
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
     } catch {
-      /* createSession failure is surfaced via the sessions slice */
+      /* 처리 실패는 Redux Slice 레벨에서 에러 핸들링 */
     } finally {
       setBusy(false);
     }
@@ -103,7 +121,6 @@ export default function InputArea() {
           title="PDF 첨부 (개발 예정)"
           aria-label="PDF 첨부"
         >
-
           <svg
             width="18"
             height="18"
