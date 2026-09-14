@@ -54,19 +54,22 @@ stop.bat
 
 ## postgres 셋업
 <pre>
-작성 중
+최초 셋업
+_boot\sql\init.sql
 </pre>
 
 ## minio 셋업
 <pre>
+docker exec -it hk-ai-minio-compose bash
+
 # 1. Set alias
 mc alias set myminio http://hk-ai-minio-compose:9000 minio minioadmin
 mc alias set local http://localhost:9000 minio minioadmin
 
 # 2. Create the service account / access key
 mc admin user svcacct add \
-  --access-key "" \
-  --secret-key "" \
+  --access-key "2P6CYYSR29707BNFYLM0" \
+  --secret-key "Tj+LoHsUYNxJBbSnsnG06ND3g73Qo9o5InvYvLnh" \
   myminio minio
 
 # 3. set download

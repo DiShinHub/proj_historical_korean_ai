@@ -6,7 +6,7 @@ common:
     version: 0.1.0
   cors:
     allow:
-      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+      origins: [ "http://localhost:30001", "https://localhost:30001", "http://127.0.0.1:30001", "http://127.0.0.1:30001"  ]
   metrics:
     prometheus:
       use: true
@@ -19,14 +19,14 @@ dev:
   debug: false
   cors:
     allow:
-      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+      origins: [ "http://localhost:30001", "https://localhost:30001", "http://127.0.0.1:30001", "http://127.0.0.1:30001"  ]
 
 # staging
 stg:
   debug: false
   cors:
     allow:
-      origins: [ "http://localhost:30001", "https://localhost:30001" ]
+      origins: [ "http://localhost:30001", "https://localhost:30001", "http://127.0.0.1:30001", "http://127.0.0.1:30001"  ]
 
 # production
 prd:

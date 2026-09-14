@@ -8,7 +8,6 @@ venv/
 
 backup/
 program/
-*.sql
 *.png
 logs
 
