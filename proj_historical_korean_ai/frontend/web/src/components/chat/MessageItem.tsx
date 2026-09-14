@@ -103,8 +103,7 @@ function AssistantMessage({ message, onRetry }: MessageItemProps) {
         <div className="card-content">
           {isEmpty ? (
             <span className="muted">
-              (응답이 비어 있습니다 — 백엔드가 아직 텍스트를 생성하지 않습니다.
-              체크포인트 #2)
+              의도 분류에 실패햐였습니다. 관리자에게 문의해주세요.
             </span>
           ) : hasCandidates ? (
             <div className="candidate-list">
@@ -119,14 +118,14 @@ function AssistantMessage({ message, onRetry }: MessageItemProps) {
             <span className="stream-caret" aria-hidden />
           ) : null}
         </div>
-        {!isEmpty ? (
-          <div className="card-actions">
-            <button type="button" onClick={copyAll}>
-              {copied ? "복사됨" : "전체 복사"}
-            </button>
-          </div>
-        ) : null}
       </div>
+      {!isEmpty ? (
+        <div className="card-actions">
+          <button type="button" onClick={copyAll}>
+            {copied ? "복사됨" : "전체 복사"}
+          </button>
+        </div>
+      ) : null}
 
       {message.audioUrl ? (
         <div className="response-card">

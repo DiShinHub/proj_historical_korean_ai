@@ -28,22 +28,14 @@ export default function CandidateAudio({ candidate }: CandidateAudioProps) {
   return (
     <div className="candidate-row">
       <div className="candidate-text">
-        <div className="candidate-ko">{candidate.text}</div>
-        {candidate.ipa ? (
-          <div className="candidate-ipa">/{candidate.ipa}/</div>
-        ) : null}
-        <div className="candidate-actions">
-          <button
-            type="button"
-            className="candidate-copy-btn"
-            onClick={handleCopy}
-            aria-label="텍스트 복사"
-          >
-            {copied ? "복사됨" : "복사"}
-          </button>
+        <div className="candidate-ko">
+          {candidate.text}
         </div>
+        {/* {candidate.ipa ? (
+          <div className="candidate-ipa">/{candidate.ipa}/</div>
+        ) : null} */}
+        
       </div>
-
 
       <div className="candidate-audio">
         {candidate.state === "notexist" ? (
@@ -66,6 +58,16 @@ export default function CandidateAudio({ candidate }: CandidateAudioProps) {
             ) : null}
           </>
         )}
+      </div>
+      <div className="candidate-actions">
+        <button
+          type="button"
+          className="candidate-copy-btn"
+          onClick={handleCopy}
+          aria-label="텍스트 복사"
+        >
+          {copied ? "복사됨" : "복사"}
+        </button>
       </div>
     </div>
   );
