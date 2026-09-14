@@ -1,11 +1,9 @@
 # 🚀 HK AI Project Setup Guide
-
 이 문서는 프로젝트 실행을 위한 환경 구성 및 실행 방법을 안내합니다.
 
 ---
 
 ## 📦 필수 소프트웨어
-
 다음 소프트웨어가 설치되어 있어야 합니다.
 
 - 🐳 Docker
@@ -15,7 +13,6 @@
 ---
 
 ## 💡 권장 소프트웨어
-
 개발 편의를 위해 아래 도구 설치를 권장합니다.
 
 - 🛠️ DBeaver (DB 관리)
@@ -23,8 +20,13 @@
 
 ---
 
-## 🌐 Docker 네트워크 설정
+## open-ai api key
+https://platform.openai.com/home
+https://platform.openai.com/api-keys
 
+빌링 등록 후 키 신청
+
+## 🌐 Docker 네트워크 설정
 프로젝트 실행 전 Docker 네트워크를 생성합니다.
 docker network create hk-ai-network
 
