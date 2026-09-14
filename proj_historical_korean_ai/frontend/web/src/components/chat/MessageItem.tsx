@@ -122,7 +122,7 @@ function AssistantMessage({ message, onRetry }: MessageItemProps) {
         {!isEmpty ? (
           <div className="card-actions">
             <button type="button" onClick={copyAll}>
-              {copied ? "복사됨" : "복사"}
+              {copied ? "복사됨" : "전체 복사"}
             </button>
           </div>
         ) : null}
