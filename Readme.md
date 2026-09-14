@@ -21,10 +21,12 @@
 ---
 
 ## open-ai api key
+- 빌링 등록 후 키 신청합니다.
 https://platform.openai.com/home
 https://platform.openai.com/api-keys
 
-빌링 등록 후 키 신청
+- 본 키를 env 파일에 등록 해야합니다.
+proj_historical_korean_ai\backend\llm\docker-compose\env
 
 ## 🌐 Docker 네트워크 설정
 프로젝트 실행 전 Docker 네트워크를 생성합니다.
