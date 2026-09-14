@@ -42,6 +42,7 @@ services:
       - APP_PORT=${FASTAPI_TASK_WORKER_PORT}
       - APP_LOG_LOCATION=/apps/logs/${FASTAPI_TASK_WORKER_NAME}
       - CHAT_GPT_SECRET_KEY=${CHAT_GPT_SECRET_KEY}
+      - WORKER_COUNT=${WORKER_COUNT}
     networks:
       - hk-ai-network
     logging:

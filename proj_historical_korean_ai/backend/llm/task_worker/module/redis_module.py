@@ -7,9 +7,9 @@ import json
 import redis
 
 class RedisModule():
-    __logger = LogTool.get_logger(__qualname__)
-
+    
     def __init__(self):
+        self.__logger = LogTool.get_logger(self.__class__.__name__) 
         self.redis= None
         self.connect_redis()
            

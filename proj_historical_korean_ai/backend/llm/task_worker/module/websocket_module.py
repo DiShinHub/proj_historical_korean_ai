@@ -9,9 +9,8 @@ import time
 
 class WebSocketModule:
 
-    __logger = LogTool.get_logger(__qualname__)
-
     def __init__(self):
+        self.__logger = LogTool.get_logger(self.__class__.__name__) 
 
         properties_dict: dict = WebSocketConfigRunner().get_properties()
 
@@ -63,7 +62,6 @@ class WebSocketModule:
                         ping_timeout=20,
                     )
 
-                    self.__logger.info("WebSocket Connected")
                     return 
 
                 except Exception as e:

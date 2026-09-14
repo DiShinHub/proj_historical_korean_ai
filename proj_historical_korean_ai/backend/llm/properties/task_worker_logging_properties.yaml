@@ -25,7 +25,7 @@ common:
   handlers:
     file_handler:
       class: logging.handlers.TimedRotatingFileHandler
-      filename: ${APP_LOG_LOCATION:-logs}/scheduler_logger.log
+      filename: ${APP_LOG_LOCATION:-logs}/task_worker_logger.log
       when: D
       interval: 1
       formatter: file_formatter
@@ -117,7 +117,7 @@ dev:
   handlers:
     file_handler:
       class: logging.handlers.TimedRotatingFileHandler
-      filename: ${APP_LOG_LOCATION:-logs}/scheduler_logger.log
+      filename: ${APP_LOG_LOCATION:-logs}/task_worker_logger.log
       when: D
       interval: 1
       formatter: file_formatter
@@ -209,7 +209,7 @@ stg:
   handlers:
     file_handler:
       class: logging.handlers.TimedRotatingFileHandler
-      filename: ${APP_LOG_LOCATION:-logs}/scheduler_logger.log
+      filename: ${APP_LOG_LOCATION:-logs}/task_worker_logger.log
       when: D
       interval: 1
       formatter: file_formatter
@@ -301,7 +301,7 @@ prd:
   handlers:
     file_handler:
       class: logging.handlers.TimedRotatingFileHandler
-      filename: ${APP_LOG_LOCATION:-logs}/scheduler_logger.log
+      filename: ${APP_LOG_LOCATION:-logs}/task_worker_logger.log
       when: D
       interval: 1
       formatter: file_formatter

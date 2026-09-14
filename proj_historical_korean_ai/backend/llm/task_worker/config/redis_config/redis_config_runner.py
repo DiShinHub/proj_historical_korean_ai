@@ -17,7 +17,6 @@ class RedisConfigRunner(metaclass=SingletonMeta):
     ):
         
         self.logger = LogTool.get_logger(self.__class__.__name__)
-        self.logger.debug("Initialize Redis Config Runner")
         self.redis_properties_location: Path = Path(redis_properties_location)
         self.redis_properties_local_location: Path = Path(redis_properties_local_location)
      

@@ -9,8 +9,7 @@ from task_worker.graph.llm.chat_gpt import ChatGPT
 from task_worker.graph.llm.chat_gpt_tts import ChatGPTTTS
 
 from task_worker.dao.chat_dao import chat_dao
-from task_worker.module.websocket_module import web_socket_module
-from task_worker.module.minio_module import minio_module
+from task_worker.module.websocket_module import WebSocketModule
 
 from task_worker.graph.builds.base.rules import BaseRules
 from task_worker.exception.llm_exception import LlmException
@@ -31,7 +30,8 @@ class PromptsService():
         self.hk_ipa_14c_graph = HKIpa14CBuilder(llm=ChatGPT()).build_graph()
 
         self.chat_dao = chat_dao
-        self.web_socket_module = web_socket_module
+        self.web_socket_module = WebSocketModule()
+        self.web_socket_module.start()
         
     def handle_prompts(self, task):
         """

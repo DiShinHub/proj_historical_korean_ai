@@ -22,9 +22,6 @@ class MinioModule():
         self.minio_bucket: str = properties_dict.get("minio_bucket")
         self.minio_local: str = properties_dict.get("minio_local")
 
-        self.__logger.info(f"self.minio_external_url : {self.minio_external_url}")
-        self.__logger.info(f"self.minio_service_port : {self.minio_service_port}")
-
         self.external_client = None
         
         self.set_minio_client()
