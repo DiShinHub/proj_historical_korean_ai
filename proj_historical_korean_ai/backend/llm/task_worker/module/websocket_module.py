@@ -121,7 +121,3 @@ class WebSocketModule:
             self.__logger.error(f"emit failed : {e}")
             await self.reconnect()
             await self.ws.send(json.dumps(payload))
-
-# single tone
-web_socket_module = WebSocketModule()
-web_socket_module.start()

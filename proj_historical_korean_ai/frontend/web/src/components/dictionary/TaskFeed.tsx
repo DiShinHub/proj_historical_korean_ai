@@ -67,10 +67,6 @@ export default function TaskFeed({
         {events.length === 0 ? (
           <div className={styles.feedEmpty}>
             아직 수신한 작업 결과가 없습니다.
-            <br />
-            room <code>{HK_DICTIONARY_ROOM}</code> 에 조인되어 있습니다.
-            <br />
-            모든 사용자의 일괄 삽입 결과가 이곳에 함께 표시됩니다.
           </div>
         ) : null}
 

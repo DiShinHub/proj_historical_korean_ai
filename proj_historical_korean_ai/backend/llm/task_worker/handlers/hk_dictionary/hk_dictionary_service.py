@@ -5,20 +5,21 @@ from task_worker.graph.llm.chat_gpt import ChatGPT
 
 from task_worker.dao.chat_dao import chat_dao
 from task_worker.dao.hk_dictionary_service_dao import hk_dictionary_dao
-from task_worker.module.websocket_module import web_socket_module
+from task_worker.module.websocket_module import WebSocketModule
 
 from task_worker.graph.builds.base.rules import BaseRules
 from task_worker.exception.llm_exception import LlmException
 
 class HKDictionaryService():
     __logger = LogTool.get_logger(__qualname__)
-    
+
     def __init__(self):
         self.hk_dictionary_dump_raw_graph = HKDictionaryDumpRawCBuilder(llm=ChatGPT()).build_graph()
 
         self.chat_dao = chat_dao
         self.hk_dictionary_dao = hk_dictionary_dao
-        self.web_socket_module = web_socket_module
+        self.web_socket_module = WebSocketModule()
+        self.web_socket_module.start()
         
     def handle_hk_dictionary_dump_raw(self, task):
         """
