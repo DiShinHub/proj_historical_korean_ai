@@ -1,5 +1,7 @@
 
 from task_worker.tool.log_tool import LogTool
+
+from task_worker.graph.builds.base.graph_builder import BaseBuilder
 from task_worker.graph.builds.hk_intent_matching.graph_builder import HkIntentMatchingBuilder
 from task_worker.graph.builds.hk_audio_creator.graph_builder import HkAudioCreatorBuilder
 from task_worker.graph.builds.hk_translator_21c.graph_builder import HKTranslator21CBuilder
@@ -21,6 +23,8 @@ class PromptsService():
     __logger = LogTool.get_logger(__qualname__)
     
     def __init__(self):
+        
+        self.base_graph = BaseBuilder(llm=ChatGPT()).build_graph()
         self.hk_intent_matching_graph = HkIntentMatchingBuilder(llm=ChatGPT()).build_graph()
         self.hk_audio_creator_graph = HkAudioCreatorBuilder(llm=ChatGPTTTS()).build_graph()
 
@@ -60,6 +64,18 @@ class PromptsService():
             if intent == "hk_translator_21c":
                 res_hk_translator_21c_graph = self.hk_translator_21c_graph.invoke({"input_message": input_message})
                 llm_msg = res_hk_translator_21c_graph.get('llm_node_response_text_prev')
+
+                # 결과 DB 저장
+                self.chat_dao.add_chat_message(
+                    chat_session_seq=chat_session_seq,
+                    model_name="",
+                    role="SYSTEM",
+                    content=[llm_msg],
+                    ipa=[],
+                    audio_path="",
+                    audio_expire_yn="N",
+                    response_time_ms=0,
+                )
 
             # case, 14세기 중세국어
             elif intent == "hk_translator_14c":
@@ -120,7 +136,20 @@ class PromptsService():
                 
             # default
             else:
-                pass
+                res_base_graph = self.base_graph.invoke({"input_message": input_message})
+                llm_msg = res_base_graph.get('llm_node_response_text_prev')
+
+                # 결과 DB 저장
+                self.chat_dao.add_chat_message(
+                    chat_session_seq=chat_session_seq,
+                    model_name="",
+                    role="SYSTEM",
+                    content=[llm_msg],
+                    ipa=[],
+                    audio_path="",
+                    audio_expire_yn="N",
+                    response_time_ms=0,
+                )
             
             result = "success"
         
