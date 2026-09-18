@@ -61,6 +61,7 @@ class WebSocketModule:
                         ping_interval=20,
                         ping_timeout=20,
                     )
+                    self.__logger.info(f"WebSocketModule.connected.")
 
                     return 
 

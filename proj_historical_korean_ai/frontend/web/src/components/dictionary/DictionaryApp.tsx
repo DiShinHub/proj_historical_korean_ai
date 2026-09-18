@@ -181,7 +181,7 @@ function DictionaryConsole() {
 
   const closeDialog = useCallback(() => setDialog({ type: "none" }), []);
 
-  const hiddenByClientFilter = list.pageItemCount - list.items.length;
+  // const hiddenByClientFilter = list.pageItemCount - list.items.length;
 
   return (
     <div className={styles.page}>
@@ -280,14 +280,14 @@ function DictionaryConsole() {
 
               <span className={styles.panelSpacer} />
 
-              <button
+              {/* <button
                 type="button"
                 className={styles.btn}
                 onClick={refresh}
                 disabled={list.loading}
               >
                 {list.loading ? "새로고침 중…" : "↻ 새로고침"}
-              </button>
+              </button> */}
             </div>
 
             {/* ── 조회 조건 ─────────────────────────────────── */}
@@ -300,7 +300,7 @@ function DictionaryConsole() {
               onSortChange={list.setSort}
             />
 
-            {list.clientFilterActive ? (
+            {/* {list.clientFilterActive ? (
               <div className={`${styles.notice} ${styles.noticeWarn}`}>
                 <span aria-hidden>⚠️</span>
                 <span>
@@ -314,7 +314,7 @@ function DictionaryConsole() {
                   (BACKEND_MODIFICATION_NOTES.md §1).
                 </span>
               </div>
-            ) : null}
+            ) : null} */}
 
             {/* ── 일괄 검수 ─────────────────────────────────── */}
             {list.selectedSeqs.size > 0 ? (

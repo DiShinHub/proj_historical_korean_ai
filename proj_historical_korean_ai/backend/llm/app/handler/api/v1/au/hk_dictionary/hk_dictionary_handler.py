@@ -33,8 +33,10 @@ async def get_hk_dictionary(
 @router.get("")
 async def get_hk_dictionary_list(
     modern_korean: str | None = Query(None, description="현대어 검색어"),
+    historical_korean: str | None = Query(None, description="고어 검색어"),
     historical_period_start_dt: str | None = Query(None, description="시대 시작일시 (ISO format)"),
     historical_period_end_dt: str | None = Query(None, description="시대 종료일시 (ISO format)"),
+    confirmed_yn: str | None = Query(None, description="컨펌 여부"),
     order_by: str = Query("seq", description="정렬 컬럼 (기본값: seq)"),
     order_direction: str = Query("desc", description="정렬 방향 (asc / desc)"),
     page: int = Query(1, ge=1, description="페이지 번호"),
@@ -44,8 +46,10 @@ async def get_hk_dictionary_list(
     """고어 사전 항목 목록 조회 (검색 및 페이징)"""
     return await service.get_hk_dictionary_list(
         modern_korean=modern_korean,
+        historical_korean=historical_korean,
         historical_period_start_dt=historical_period_start_dt,
         historical_period_end_dt=historical_period_end_dt,
+        confirmed_yn=confirmed_yn,
         order_by=order_by,
         order_direction=order_direction,
         page=page,

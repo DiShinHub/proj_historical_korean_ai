@@ -73,7 +73,7 @@ export interface UseDictionaryListResult {
   filters: DictionaryFilterState;
   sort: DictionarySortState;
   /** 현재 클라이언트 필터가 걸려 있는가(고어 / 검수 여부 조건 선택 + 값 있음) */
-  clientFilterActive: boolean;
+  // clientFilterActive: boolean;
 
   applyFilters: (next: DictionaryFilterState) => void;
   resetFilters: () => void;
@@ -91,12 +91,7 @@ export interface UseDictionaryListResult {
 }
 
 function hasClientFilter(f: DictionaryFilterState): boolean {
-  if (f.conditions.includes("historical_korean") && f.historical_korean.trim()) {
-    return true;
-  }
-  if (f.conditions.includes("confirmed_yn") && f.confirmed_yn) {
-    return true;
-  }
+
   return false;
 }
 
@@ -196,26 +191,7 @@ export function useDictionaryList(): UseDictionaryListResult {
 
   // ── 서버 미지원 조건(고어 / 검수 여부): 현재 페이지 한정 클라이언트 필터 ──────────
   // 여러 조건이 함께 선택된 경우 AND 로 결합한다.
-  const items = useMemo(() => {
-    const historicalTerm = filters.conditions.includes("historical_korean")
-      ? filters.historical_korean.trim()
-      : "";
-    const confirmedFilter = filters.conditions.includes("confirmed_yn")
-      ? filters.confirmed_yn
-      : "";
-
-    if (!historicalTerm && !confirmedFilter) return rows;
-
-    return rows.filter((row) => {
-      if (historicalTerm && !(row.historical_korean ?? "").includes(historicalTerm)) {
-        return false;
-      }
-      if (confirmedFilter && row.confirmed_yn !== confirmedFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [rows, filters.conditions, filters.historical_korean, filters.confirmed_yn]);
+  const items = rows;
 
   const applyFilters = useCallback((next: DictionaryFilterState) => {
     console.log("[dictionary] applyFilters", next);
@@ -313,7 +289,7 @@ export function useDictionaryList(): UseDictionaryListResult {
     error,
     filters,
     sort,
-    clientFilterActive: hasClientFilter(filters),
+    // clientFilterActive: hasClientFilter(filters),
     applyFilters,
     resetFilters,
     setSort,

@@ -67,7 +67,7 @@ export const DICTIONARY_FIELDS: DictionaryFieldMeta[] = [
     type: "text",
     filter: "server",
     inList: true,
-    hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
+    hint: "부분 일치(LIKE)",
   },
   {
     key: "historical_period_start_dt",
@@ -99,7 +99,7 @@ export const DICTIONARY_FIELDS: DictionaryFieldMeta[] = [
     type: "yn",
     filter: "server",
     inList: true,
-    hint: "서버 필터 미지원 · 현재 페이지 내에서만 적용",
+    hint: "부분 일치(LIKE)",
   },
 ];
 
@@ -133,25 +133,25 @@ export const SEARCH_CONDITIONS: SearchConditionMeta[] = [
     key: "modern_korean",
     label: "현대어",
     support: "server",
-    hint: "부분 일치 기준 검색",
+    hint: "검색어가 포함 된 내용으로 검색합니다.",
   },
   {
     key: "historical_korean",
     label: "고어",
     support: "server",
-    hint: "부분 일치 기준 검색",
+    hint: "",
   },
   {
     key: "period",
     label: "시대 기간",
     support: "server",
-    hint: "시작일~종료일",
+    hint: "",
   },
   {
     key: "confirmed_yn",
     label: "검수 여부",
     support: "server",
-    hint: "검수/비검수 분류",
+    hint: "",
   },
 ];
 

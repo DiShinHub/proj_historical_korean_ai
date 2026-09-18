@@ -62,8 +62,9 @@ export default function DictionaryFormDialog({
 
   const modernMissing = !form.modern_korean.trim();
   const historicalMissing = !form.historical_korean.trim();
+  const rangeMissing = !form.periodStart || !form.periodEnd;
   const rangeInvalid = Boolean(
-    form.periodStart && form.periodEnd && form.periodStart > form.periodEnd
+    rangeMissing || form.periodStart > form.periodEnd
   );
   const blocked = modernMissing || historicalMissing || rangeInvalid;
 
@@ -153,7 +154,6 @@ export default function DictionaryFormDialog({
             <span className={styles.errorText}>현대어는 필수입니다.</span>
           ) : null}
         </div>
-
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="d-historical">
             고어<span className={styles.required}>*</span>
@@ -176,7 +176,7 @@ export default function DictionaryFormDialog({
         <div className={`${styles.field} ${styles.formFull}`}>
           <div className={styles.fieldLabelRow}>
             <label className={styles.fieldLabel} htmlFor="f-form-period-start">
-              시대 기간
+              시대 기간<span className={styles.required}>*</span>
             </label>
           </div>
           <DateRangeBar
@@ -188,6 +188,9 @@ export default function DictionaryFormDialog({
               patch({ periodStart, periodEnd })
             }
           />
+          {rangeMissing ? (
+            <span className={styles.errorText}>시대 기간 입력은 필수 입니다.</span>
+          ) : null}
         </div>
         {isEdit ? (
           <div className={styles.field}>

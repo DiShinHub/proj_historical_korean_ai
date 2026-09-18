@@ -18,6 +18,7 @@ from app.decoration.transactional import Transactional
 from app.config.redis_config.redis_config_repository import redis_config_repository
 
 from app.tool.log_tool import LogTool
+from app.tool.timezone_tool import TimezoneTool
 
 import datetime
 import math
@@ -100,8 +101,8 @@ class HkDictionaryService:
                 "seq": dictionary_item.seq,
                 "modern_korean": dictionary_item.modern_korean,
                 "historical_korean": dictionary_item.historical_korean,
-                "historical_period_start_dt": dictionary_item.historical_period_start_dt,
-                "historical_period_end_dt": dictionary_item.historical_period_end_dt,
+                "historical_period_start_dt": TimezoneTool.format_to_kst_str(dictionary_item.historical_period_start_dt),
+                "historical_period_end_dt": TimezoneTool.format_to_kst_str(dictionary_item.historical_period_end_dt),
                 "reg_dt": dictionary_item.reg_dt,
                 "reg_member_seq": dictionary_item.reg_member_seq,
                 "mod_dt": dictionary_item.mod_dt,
@@ -153,6 +154,7 @@ class HkDictionaryService:
                 page_size=page_size,
                 confirmed_yn=confirmed_yn
             )
+
         except Exception as e:
             self.__logger.error(f"error : {str(e)}")
             raise InternalServerException("사전 목록 조회 실패")
@@ -168,8 +170,8 @@ class HkDictionaryService:
                         "seq": item.seq,
                         "modern_korean": item.modern_korean,
                         "historical_korean": item.historical_korean,
-                        "historical_period_start_dt": item.historical_period_start_dt,
-                        "historical_period_end_dt": item.historical_period_end_dt,
+                        "historical_period_start_dt": TimezoneTool.format_to_kst_str(item.historical_period_start_dt),
+                        "historical_period_end_dt": TimezoneTool.format_to_kst_str(item.historical_period_end_dt),
                         "reg_dt": item.reg_dt,
                         "mod_dt": item.mod_dt,
                         "confirmed_yn": item.confirmed_yn,

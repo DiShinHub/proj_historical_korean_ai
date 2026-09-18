@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "@/styles/Dictionary.module.css";
 import DateRangeBar from "./DateRangeBar";
-import FilterSupportBadge from "./FilterSupportBadge";
+// import FilterSupportBadge from "./FilterSupportBadge";
 import {
   SEARCH_CONDITIONS,
   SORTABLE_FIELDS,
@@ -114,7 +114,7 @@ export default function DictionaryFilters({
                 <input
                   className={styles.input}
                   value={draft.modern_korean}
-                  placeholder="현대어 부분 일치 검색 (예: 사랑)"
+                  placeholder="현대어 검색 (예: 사랑)"
                   onChange={(e) => patch({ modern_korean: e.target.value })}
                 />
               </ConditionField>
@@ -125,7 +125,7 @@ export default function DictionaryFilters({
                 <input
                   className={styles.input}
                   value={draft.historical_korean}
-                  placeholder="고어 부분 일치 검색 (예: 괴다)"
+                  placeholder="고어 검색 (예: 괴다)"
                   onChange={(e) => patch({ historical_korean: e.target.value })}
                 />
               </ConditionField>
@@ -229,7 +229,7 @@ function ConditionField({
     <div className={`${styles.field} ${wide ? styles.fieldWide : ""}`}>
       <div className={styles.fieldLabelRow}>
         <span className={styles.fieldLabel}>{meta.label}</span>
-        <FilterSupportBadge support={meta.support} />
+        {/* <FilterSupportBadge support={meta.support} /> */}
       </div>
       {children}
       {meta.hint ? (

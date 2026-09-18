@@ -46,9 +46,11 @@ export interface HkDictionaryListResult {
 export interface HkDictionaryListQuery {
   /** 현대어 부분 일치 */
   modern_korean?: string;
+  historical_korean?: string;
   /** ISO(+09:00) 문자열 */
   historical_period_start_dt?: string;
   historical_period_end_dt?: string;
+  confirmed_yn?: string;
   order_by?: string;
   order_direction?: "asc" | "desc";
   page?: number;
@@ -80,8 +82,10 @@ export async function listDictionary(
     // undefined 값은 axios 가 쿼리스트링에서 자동으로 제외한다.
     params: {
       modern_korean: query.modern_korean || undefined,
+      historical_korean: query.historical_korean || undefined,
       historical_period_start_dt: query.historical_period_start_dt || undefined,
       historical_period_end_dt: query.historical_period_end_dt || undefined,
+      confirmed_yn: query.confirmed_yn || undefined,
       order_by: query.order_by ?? "seq",
       order_direction: query.order_direction ?? "desc",
       page: query.page ?? 1,
