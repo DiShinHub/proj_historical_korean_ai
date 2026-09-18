@@ -44,10 +44,31 @@ export const createSession = createAsyncThunk<
   { tempId: number; seq: number; title: string },
   { title?: string },
   { rejectValue: { message: string } }
->("sessions/create", async ({ title = "새 대화" }, { dispatch, rejectWithValue }) => {
+>("sessions/create", async ({ title = "새 대화" }, { dispatch, getState, rejectWithValue }) => {
+  const state = getState() as {
+    sessions: SessionsState;
+    messages: { pendingAssistant: Record<number, string | undefined> };
+  };
+
+  const prev = state.sessions.activeSeq;
   const tempId = nextTempId();
 
-  // 1. UI에 즉시 반영 (Optimistic)
+  // 1. 이전 활성 세션 정리 (switchSession과 동일한 cleanup 처리)
+  if (prev != null && prev > 0) {
+    sessionApi
+      .updateSession(prev, { status: "inactive" })
+      .catch((e) => console.warn("[API] 이전 세션 inactive 실패", prev, e));
+
+    const awaiting = Boolean(state.messages.pendingAssistant[prev]);
+    if (awaiting) {
+      console.log("[Socket] 이전 세션 응답 대기 중 → Room 유지", prev);
+    } else {
+      const socket = getChatSocket();
+      socket.unsubscribe(String(prev));
+    }
+  }
+
+  // 2. UI에 즉시 반영 (Optimistic)
   dispatch(
     sessionAdded({
       seq: tempId,
@@ -58,11 +79,11 @@ export const createSession = createAsyncThunk<
   dispatch(setActiveSession(tempId));
 
   try {
-    // 2. 백엔드 세션 생성 API 호출
+    // 3. 백엔드 세션 생성 API 호출
     const seq = await sessionApi.createSession(title);
     return { tempId, seq, title };
   } catch (e) {
-    // 실패 시 임시 세션 제거
+    // 실패 시 임시 세션 제거 및 이전 세션 상태 복구 검토
     dispatch(sessionRemoved(tempId));
     return rejectWithValue({ message: (e as ApiError).message });
   }
@@ -142,7 +163,9 @@ export const switchSession = createAsyncThunk(
     }
 
     if (seq > 0) {
-      const activateDt = new Date().toISOString().slice(0, 19);
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      const activateDt = new Date(now.getTime() - offset).toISOString().slice(0, 19);
       sessionApi
         .updateSession(seq, { status: "active", activate_dt: activateDt })
         .catch((e) => console.warn("[API] 새 세션 active 실패", seq, e));

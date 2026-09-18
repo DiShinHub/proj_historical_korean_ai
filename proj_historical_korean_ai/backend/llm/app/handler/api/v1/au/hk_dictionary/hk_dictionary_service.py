@@ -172,8 +172,8 @@ class HkDictionaryService:
                         "historical_korean": item.historical_korean,
                         "historical_period_start_dt": TimezoneTool.format_to_kst_str(item.historical_period_start_dt),
                         "historical_period_end_dt": TimezoneTool.format_to_kst_str(item.historical_period_end_dt),
-                        "reg_dt": item.reg_dt,
-                        "mod_dt": item.mod_dt,
+                        "reg_dt": TimezoneTool.format_to_kst_str(item.reg_dt),
+                        "mod_dt": TimezoneTool.format_to_kst_str(item.mod_dt),
                         "confirmed_yn": item.confirmed_yn,
                     }
                     for item in data_list

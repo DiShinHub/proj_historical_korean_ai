@@ -6,6 +6,10 @@ import { dumpRawDictionary } from "@/lib/api/dictionary";
 import type { ApiError } from "@/lib/api/types";
 import { HK_DICTIONARY_ROOM } from "@/hooks/useDictionaryRoom";
 import { toDumpEnd, toDumpStart } from "@/lib/dictionary/datetime";
+import {
+  toPeriodEndIso,
+  toPeriodStartIso,
+} from "@/lib/dictionary/datetime";
 
 /** 백엔드 문서에 실린 예시 원문. QA/데모용 채우기 버튼에서 사용한다. */
 const SAMPLE_RAW_TEXT =
@@ -55,8 +59,8 @@ export default function BulkTextDialog({
     try {
       await dumpRawDictionary({
         raw_text: rawText.trim(),
-        historical_period_start_dt: toDumpStart(periodStart),
-        historical_period_end_dt: toDumpEnd(periodEnd),
+        historical_period_start_dt: toPeriodStartIso(periodStart),
+        historical_period_end_dt: toPeriodEndIso(periodEnd),
         room_name: HK_DICTIONARY_ROOM,
       });
 

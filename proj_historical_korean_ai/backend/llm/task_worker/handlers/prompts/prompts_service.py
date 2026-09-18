@@ -53,6 +53,9 @@ class PromptsService():
 
         #
         llm_msg = ""
+        content = None
+        ipa = None
+        audio_path = None
 
         # 의도 분류 
         res_hk_intent_matching_graph = self.hk_intent_matching_graph.invoke({"input_message": input_message})
@@ -65,17 +68,7 @@ class PromptsService():
                 res_hk_translator_21c_graph = self.hk_translator_21c_graph.invoke({"input_message": input_message})
                 llm_msg = res_hk_translator_21c_graph.get('llm_node_response_text_prev')
 
-                # 결과 DB 저장
-                self.chat_dao.add_chat_message(
-                    chat_session_seq=chat_session_seq,
-                    model_name="",
-                    role="SYSTEM",
-                    content=[llm_msg],
-                    ipa=[],
-                    audio_path="",
-                    audio_expire_yn="N",
-                    response_time_ms=0,
-                )
+                content = [llm_msg]
 
             # case, 14세기 중세국어
             elif intent == "hk_translator_14c":
@@ -111,18 +104,6 @@ class PromptsService():
                     hk_audio_creator_response_text = hk_audio_creator_result.get('llm_node_response_text_prev')
                     hk_audio_translations_path.append(hk_audio_creator_response_text)
 
-                # 결과 DB 저장
-                self.chat_dao.add_chat_message(
-                    chat_session_seq=chat_session_seq,
-                    model_name="",
-                    role="SYSTEM",
-                    content=hk_translations,
-                    ipa=hk_ipa_translations,
-                    audio_path=hk_audio_translations_path,
-                    audio_expire_yn="N",
-                    response_time_ms=0,
-                )
-
                 llm_msg = ""
                 if len(hk_translations) == 0:
                     llm_msg = f"관리자에게 문의 주세요."
@@ -133,24 +114,30 @@ class PromptsService():
                 else:
                     for i in range(0, len(hk_translations)):
                         llm_msg += f"{hk_translations[i]}^T|A^{hk_audio_translations_path[i]}\n\n"
+
+                content = hk_translations
+                ipa = hk_ipa_translations
+                audio_path = hk_audio_translations_path
                 
             # default
             else:
                 res_base_graph = self.base_graph.invoke({"input_message": input_message})
                 llm_msg = res_base_graph.get('llm_node_response_text_prev')
+                
+                content = [llm_msg]
+                
+            # 결과 DB 저장
+            self.chat_dao.add_chat_message(
+                chat_session_seq=chat_session_seq,
+                model_name="",
+                role="SYSTEM",
+                content=content,
+                ipa=ipa,
+                audio_path=audio_path,
+                audio_expire_yn="N",
+                response_time_ms=0,
+            )
 
-                # 결과 DB 저장
-                self.chat_dao.add_chat_message(
-                    chat_session_seq=chat_session_seq,
-                    model_name="",
-                    role="SYSTEM",
-                    content=[llm_msg],
-                    ipa=[],
-                    audio_path="",
-                    audio_expire_yn="N",
-                    response_time_ms=0,
-                )
-            
             result = "success"
         
         except Exception as e:
